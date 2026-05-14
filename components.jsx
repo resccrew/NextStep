@@ -71,10 +71,10 @@ function Chip({ on, onClick, children, removable, onRemove }) {
 // ============ Sidebar ============
 function Sidebar({ page, onNav, user }) {
   const items = [
-    { id: 'home', label: 'Главная', icon: <Icon.Home /> },
-    { id: 'search', label: 'Поиск вакансий', icon: <Icon.Search /> },
-    { id: 'profile', label: 'Мой профиль', icon: <Icon.Profile /> },
-    { id: 'saved', label: 'Сохранённые', icon: <Icon.Saved /> },
+    { id: 'home', label: 'Home', icon: <Icon.Home /> },
+    { id: 'search', label: 'Job Search', icon: <Icon.Search /> },
+    { id: 'profile', label: 'My Profile', icon: <Icon.Profile /> },
+    { id: 'saved', label: 'Saved', icon: <Icon.Saved /> },
   ];
   return (
     <aside className="sidebar">
@@ -96,19 +96,19 @@ function Sidebar({ page, onNav, user }) {
         padding: 14, borderRadius: 14, background: 'var(--accent-soft)',
         display: 'flex', flexDirection: 'column', gap: 8
       }}>
-        <div style={{fontSize: 12, fontWeight: 700, color: 'var(--accent-ink)'}}>AI-помощник</div>
+        <div style={{fontSize: 12, fontWeight: 700, color: 'var(--accent-ink)'}}>AI Assistant</div>
         <div style={{fontSize: 12, color: 'var(--accent-ink)', lineHeight: 1.4, opacity: 0.85}}>
-          Подберём вакансии и адаптируем резюме под каждую.
+          We'll find jobs and tailor your resume for each one.
         </div>
         <button className="btn btn-mint btn-sm" onClick={() => onNav('profile')}>
-          Настроить
+          Set up
         </button>
       </div>
       <div className="row gap-10" style={{padding: '12px 8px 0', borderTop: '1px solid var(--border)', marginTop: 4}}>
         <Avatar name={user.name} size={32} />
         <div className="col" style={{lineHeight: 1.2}}>
           <div style={{fontSize: 13, fontWeight: 600}}>{user.name}</div>
-          <div style={{fontSize: 11, color: 'var(--text-muted)'}}>{user.title || 'Кандидат'}</div>
+          <div style={{fontSize: 11, color: 'var(--text-muted)'}}>{user.title || 'Candidate'}</div>
         </div>
       </div>
     </aside>
@@ -125,7 +125,7 @@ function JobCard({ job, saved, onSave, onOpen }) {
           <div className="col gap-4" style={{minWidth: 0}}>
             <div className="row gap-8" style={{flexWrap: 'wrap'}}>
               <div className="h4" style={{fontSize: 16}}>{job.title}</div>
-              {job.featured && <span className="tag mint">Подобрано AI</span>}
+              {job.featured && <span className="tag mint">AI Pick</span>}
             </div>
             <div className="row gap-8 muted" style={{fontSize: 13}}>
               <span style={{fontWeight: 500, color: 'var(--text)'}}>{job.company}</span>
@@ -136,7 +136,7 @@ function JobCard({ job, saved, onSave, onOpen }) {
         </div>
         <div className="col gap-4" style={{alignItems: 'flex-end'}}>
           <MatchMeter pct={job.match} size={48} />
-          <div style={{fontSize: 11, color: 'var(--text-muted)', fontWeight: 600}}>совпадение</div>
+          <div style={{fontSize: 11, color: 'var(--text-muted)', fontWeight: 600}}>match</div>
         </div>
       </div>
 
@@ -163,10 +163,10 @@ function JobCard({ job, saved, onSave, onOpen }) {
 
       <div className="row" style={{marginTop: 16, justifyContent: 'space-between'}}>
         <button className="btn btn-ghost btn-sm" onClick={(e)=>{ e.stopPropagation(); onSave && onSave(); }}>
-          <Icon.Bookmark /> {saved ? 'Сохранено' : 'Сохранить'}
+          <Icon.Bookmark /> {saved ? 'Saved' : 'Save'}
         </button>
         <button className="btn btn-primary btn-sm" onClick={(e)=>{ e.stopPropagation(); onOpen(); }}>
-          Откликнуться <Icon.Arrow />
+          Apply <Icon.Arrow />
         </button>
       </div>
     </div>
@@ -200,33 +200,33 @@ function JobDetail({ job, onClose, saved, onSave }) {
         <div className="row gap-12" style={{marginTop: 20}}>
           <MatchMeter pct={job.match} size={64} stroke={5} />
           <div className="col gap-4">
-            <div className="h4">Хорошее совпадение</div>
+            <div className="h4">Good match</div>
             <div className="muted" style={{fontSize: 13}}>{job.why}</div>
           </div>
         </div>
 
         <div className="row gap-12" style={{marginTop: 24, flexWrap: 'wrap'}}>
           <div className="stat" style={{flex: 1, minWidth: 140}}>
-            <div className="l">Зарплата</div>
+            <div className="l">Salary</div>
             <div className="v" style={{fontSize: 18}}>{job.salary}</div>
           </div>
           <div className="stat" style={{flex: 1, minWidth: 140}}>
-            <div className="l">Формат</div>
+            <div className="l">Format</div>
             <div className="v" style={{fontSize: 18}}>{job.type}</div>
           </div>
           <div className="stat" style={{flex: 1, minWidth: 140}}>
-            <div className="l">Размещено</div>
+            <div className="l">Posted</div>
             <div className="v" style={{fontSize: 18}}>{job.posted}</div>
           </div>
         </div>
 
         <div className="col gap-8" style={{marginTop: 24}}>
-          <div className="eyebrow">О позиции</div>
+          <div className="eyebrow">About the role</div>
           <div style={{fontSize: 14, lineHeight: 1.6}}>{job.description}</div>
         </div>
 
         <div className="col gap-8" style={{marginTop: 20}}>
-          <div className="eyebrow">Ключевые навыки</div>
+          <div className="eyebrow">Key skills</div>
           <div className="row gap-8" style={{flexWrap: 'wrap'}}>
             {job.tags.map(t => <span key={t} className="tag">{t}</span>)}
           </div>
@@ -239,19 +239,19 @@ function JobDetail({ job, onClose, saved, onSave }) {
         }}>
           <span style={{color: 'var(--accent-strong)', flexShrink: 0, marginTop: 2}}><Icon.AI /></span>
           <div className="col gap-4">
-            <div style={{fontWeight: 600, fontSize: 13, color: 'var(--accent-ink)'}}>AI адаптирует ваше резюме</div>
+            <div style={{fontWeight: 600, fontSize: 13, color: 'var(--accent-ink)'}}>AI tailors your resume</div>
             <div style={{fontSize: 13, color: 'var(--accent-ink)', opacity: 0.85, lineHeight: 1.5}}>
-              Подчеркнём релевантные проекты и навыки, переформулируем опыт под требования вакансии.
+              We'll highlight relevant projects and skills, and reframe your experience to fit the role.
             </div>
           </div>
         </div>
 
         <div className="row gap-12" style={{marginTop: 24, justifyContent: 'flex-end'}}>
           <button className="btn btn-ghost" onClick={onSave}>
-            <Icon.Bookmark /> {saved ? 'Сохранено' : 'Сохранить'}
+            <Icon.Bookmark /> {saved ? 'Saved' : 'Save'}
           </button>
           <button className="btn btn-primary">
-            Отправить адаптированное резюме <Icon.Arrow />
+            Send tailored resume <Icon.Arrow />
           </button>
         </div>
       </div>
