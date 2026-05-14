@@ -3,140 +3,140 @@
 
 const SKILL_GROUPS = [
   {
-    name: 'Разработка',
+    name: 'Development',
     skills: ['React', 'Vue', 'TypeScript', 'JavaScript', 'Node.js', 'Python', 'Go', 'Java', 'PHP', 'SQL', 'GraphQL', 'Next.js']
   },
   {
-    name: 'Дизайн',
-    skills: ['Figma', 'UI/UX', 'Прототипирование', 'Иллюстрация', 'Motion', 'Adobe XD']
+    name: 'Design',
+    skills: ['Figma', 'UI/UX', 'Prototyping', 'Illustration', 'Motion', 'Adobe XD']
   },
   {
-    name: 'Маркетинг',
-    skills: ['SEO', 'Контент', 'Email-рассылки', 'Аналитика', 'Performance', 'Бренд']
+    name: 'Marketing',
+    skills: ['SEO', 'Content', 'Email campaigns', 'Analytics', 'Performance', 'Brand']
   },
   {
-    name: 'Аналитика',
-    skills: ['SQL', 'Power BI', 'Tableau', 'Excel', 'Python', 'A/B тесты']
+    name: 'Analytics',
+    skills: ['SQL', 'Power BI', 'Tableau', 'Excel', 'Python', 'A/B tests']
   },
   {
-    name: 'Менеджмент',
-    skills: ['Agile', 'Scrum', 'Product', 'Управление командой', 'OKR']
+    name: 'Management',
+    skills: ['Agile', 'Scrum', 'Product', 'Team management', 'OKR']
   }
 ];
 
 const JOBS = [
   {
     id: 1,
-    title: 'Frontend-разработчик (React)',
+    title: 'Frontend Developer (React)',
     company: 'Lunary',
     logo: 'L',
-    location: 'Москва · удалённо',
-    salary: '220 000 – 280 000 ₽',
-    type: 'Полная',
-    posted: '2 часа назад',
+    location: 'Moscow · Remote',
+    salary: '$3,000 – $4,000',
+    type: 'Full-time',
+    posted: '2 hours ago',
     match: 94,
     tags: ['React', 'TypeScript', 'Next.js'],
-    why: 'Совпадают 5 из 6 ваших навыков · опыт совпадает',
+    why: '5 of 6 your skills match · experience matches',
     featured: true,
-    description: 'Создаём финансовый сервис нового поколения. Ищем фронт-инженера, который любит чистый код и тонкую анимацию.'
+    description: 'Building a next-generation financial service. Looking for a frontend engineer who loves clean code and smooth animations.'
   },
   {
     id: 2,
-    title: 'Product-дизайнер',
+    title: 'Product Designer',
     company: 'Forma',
     logo: 'F',
-    location: 'Санкт-Петербург · гибрид',
-    salary: '180 000 – 240 000 ₽',
-    type: 'Полная',
-    posted: '5 часов назад',
+    location: 'St. Petersburg · Hybrid',
+    salary: '$2,500 – $3,500',
+    type: 'Full-time',
+    posted: '5 hours ago',
     match: 88,
-    tags: ['Figma', 'UI/UX', 'Прототипирование'],
-    why: 'Семантически близко к вашему опыту',
-    description: 'Работаем над B2B-инструментами для логистики. Большая свобода в продуктовых решениях.'
+    tags: ['Figma', 'UI/UX', 'Prototyping'],
+    why: 'Semantically close to your experience',
+    description: 'Working on B2B tools for logistics. Great freedom in product decisions.'
   },
   {
     id: 3,
-    title: 'Fullstack-инженер',
+    title: 'Fullstack Engineer',
     company: 'Northpath',
     logo: 'N',
-    location: 'Удалённо · РФ',
-    salary: '250 000 – 320 000 ₽',
-    type: 'Полная',
-    posted: 'Вчера',
+    location: 'Remote · Russia',
+    salary: '$3,500 – $4,500',
+    type: 'Full-time',
+    posted: 'Yesterday',
     match: 86,
     tags: ['React', 'Node.js', 'PostgreSQL'],
-    why: 'Подходит по опыту 3+ года',
-    description: 'Образовательная платформа для школ. Маленькая команда, прямой контакт с пользователями.'
+    why: 'Matches 3+ years experience',
+    description: 'Educational platform for schools. Small team, direct contact with users.'
   },
   {
     id: 4,
-    title: 'Senior React-инженер',
+    title: 'Senior React Engineer',
     company: 'Atlas Health',
     logo: 'A',
-    location: 'Тбилиси · релокация',
-    salary: '$4 500 – $5 500',
-    type: 'Полная',
-    posted: '1 день назад',
+    location: 'Tbilisi · Relocation',
+    salary: '$4,500 – $5,500',
+    type: 'Full-time',
+    posted: '1 day ago',
     match: 82,
     tags: ['React', 'TypeScript', 'Redux'],
-    why: 'Совпадает по стэку и сениорности',
-    description: 'Медтех — приложение для врачей. ESOP, релокационный пакет, английский B2+.'
+    why: 'Matches by stack and seniority',
+    description: 'Medtech — an app for doctors. ESOP, relocation package, English B2+.'
   },
   {
     id: 5,
-    title: 'Data-аналитик',
+    title: 'Data Analyst',
     company: 'Briefly',
     logo: 'B',
-    location: 'Удалённо · РФ/СНГ',
-    salary: '160 000 – 210 000 ₽',
-    type: 'Полная',
-    posted: '2 дня назад',
+    location: 'Remote · Russia/CIS',
+    salary: '$2,000 – $3,000',
+    type: 'Full-time',
+    posted: '2 days ago',
     match: 71,
-    tags: ['SQL', 'Python', 'A/B тесты'],
-    why: 'Частичное совпадение по аналитическим навыкам',
-    description: 'Маркетинговое агентство ищет аналитика, который может перевести данные в инсайты.'
+    tags: ['SQL', 'Python', 'A/B tests'],
+    why: 'Partial match on analytical skills',
+    description: 'Marketing agency looking for an analyst who can turn data into insights.'
   },
   {
     id: 6,
-    title: 'Frontend-разработчик (Vue)',
+    title: 'Frontend Developer (Vue)',
     company: 'Pebble',
     logo: 'P',
-    location: 'Москва · офис',
-    salary: '180 000 – 230 000 ₽',
-    type: 'Полная',
-    posted: '3 дня назад',
+    location: 'Moscow · Office',
+    salary: '$2,500 – $3,200',
+    type: 'Full-time',
+    posted: '3 days ago',
     match: 78,
     tags: ['Vue', 'JavaScript', 'CSS'],
-    why: 'Близкая технология (Vue ↔ React)',
-    description: 'Внутренние инструменты для контент-команды. Стабильный продукт, спокойный темп.'
+    why: 'Similar technology (Vue ↔ React)',
+    description: 'Internal tools for the content team. Stable product, relaxed pace.'
   },
   {
     id: 7,
     title: 'Product Manager (B2B)',
     company: 'Cargo Loop',
     logo: 'C',
-    location: 'Удалённо',
-    salary: '230 000 – 290 000 ₽',
-    type: 'Полная',
-    posted: '4 дня назад',
+    location: 'Remote',
+    salary: '$3,000 – $4,000',
+    type: 'Full-time',
+    posted: '4 days ago',
     match: 65,
     tags: ['Product', 'B2B', 'Agile'],
-    why: 'Совпадение по управленческим навыкам',
-    description: 'Платформа для грузоперевозок. Нужен опыт ведения продукта от идеи до релиза.'
+    why: 'Matches on management skills',
+    description: 'Freight platform. Need experience taking a product from idea to release.'
   },
   {
     id: 8,
-    title: 'Junior Frontend-разработчик',
+    title: 'Junior Frontend Developer',
     company: 'Veridian',
     logo: 'V',
-    location: 'Казань · гибрид',
-    salary: '90 000 – 130 000 ₽',
-    type: 'Полная',
-    posted: '5 дней назад',
+    location: 'Kazan · Hybrid',
+    salary: '$1,000 – $1,800',
+    type: 'Full-time',
+    posted: '5 days ago',
     match: 60,
     tags: ['JavaScript', 'HTML', 'CSS'],
-    why: 'Подходит как ступень карьеры',
-    description: 'Команда из 6 человек, наставник на испытательный срок, обучение оплачивается.'
+    why: 'Good career stepping stone',
+    description: 'Team of 6, mentor during probation, training is paid.'
   }
 ];
 
