@@ -165,7 +165,7 @@ function JobCard({ job, saved, onSave, onOpen }) {
         <button className="btn btn-ghost btn-sm" onClick={(e)=>{ e.stopPropagation(); onSave && onSave(); }}>
           <Icon.Bookmark /> {saved ? 'Saved' : 'Save'}
         </button>
-        <button className="btn btn-primary btn-sm" onClick={(e)=>{ e.stopPropagation(); onOpen(); }}>
+        <button className="btn btn-primary btn-sm" onClick={(e)=>{ e.stopPropagation(); job.url ? window.open(job.url, '_blank') : onOpen(); }}>
           Apply <Icon.Arrow />
         </button>
       </div>
@@ -250,8 +250,8 @@ function JobDetail({ job, onClose, saved, onSave }) {
           <button className="btn btn-ghost" onClick={onSave}>
             <Icon.Bookmark /> {saved ? 'Saved' : 'Save'}
           </button>
-          <button className="btn btn-primary">
-            Send tailored resume <Icon.Arrow />
+          <button className="btn btn-primary" onClick={()=> job.url && window.open(job.url, '_blank')}>
+            View on praca.pl <Icon.Arrow />
           </button>
         </div>
       </div>
