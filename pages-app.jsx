@@ -9,14 +9,14 @@ function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
   const topMatch = recommended[0];
   const matchAvg = Math.round(recommended.reduce((s,j)=>s+j.match,0) / recommended.length);
 
-  const firstName = (user.name || '').split(' ')[0] || 'Анна';
+  const firstName = (user.name || '').split(' ')[0] || 'Anna';
 
   return (
     <div className="col gap-32">
       <div className="topbar">
         <div className="col gap-4">
-          <div className="eyebrow row gap-6"><span className="live-dot"></span> Подборка на сегодня</div>
-          <div className="h1">Привет, {firstName}.</div>
+          <div className="eyebrow row gap-6"><span className="live-dot"></span> Today's picks</div>
+          <div className="h1">Hi, {firstName}.</div>
         </div>
         <div className="row gap-12">
           <button className="btn btn-ghost btn-sm"><Icon.Bell /></button>
@@ -28,20 +28,19 @@ function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
         <div className="blob"></div>
         <div className="row" style={{justifyContent: 'space-between', alignItems: 'flex-start', gap: 24, position: 'relative'}}>
           <div className="col gap-8" style={{maxWidth: 460}}>
-            <div className="eyebrow">Топ совпадение</div>
+            <div className="eyebrow">Top match</div>
             <div className="h2">{topMatch.title}</div>
             <div className="muted">{topMatch.company} · {topMatch.location} · {topMatch.salary}</div>
             <div style={{fontSize: 14, lineHeight: 1.5, marginTop: 6}}>
-              AI считает, что эта вакансия совпадает с вашим профилем
-              на <strong>{topMatch.match}%</strong>. Можно откликнуться с адаптированным
-              резюме в один клик.
+              AI thinks this job matches your profile
+              by <strong>{topMatch.match}%</strong>. Apply with a tailored resume in one click.
             </div>
             <div className="row gap-10" style={{marginTop: 14}}>
               <button className="btn btn-primary" onClick={()=>onOpenJob(topMatch)}>
-                Посмотреть <Icon.Arrow />
+                View <Icon.Arrow />
               </button>
               <button className="btn btn-ghost" onClick={()=>onNav('search')}>
-                Все вакансии
+                All jobs
               </button>
             </div>
           </div>
@@ -51,19 +50,19 @@ function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
 
       <div className="row gap-16">
         <div className="stat" style={{flex: 1}}>
-          <div className="l">Новых сегодня</div>
+          <div className="l">New today</div>
           <div className="v">{recommended.length + 3}</div>
         </div>
         <div className="stat" style={{flex: 1}}>
-          <div className="l">Средняя релевантность</div>
+          <div className="l">Avg. match</div>
           <div className="v">{matchAvg}%</div>
         </div>
         <div className="stat" style={{flex: 1}}>
-          <div className="l">Откликов в этом месяце</div>
+          <div className="l">Applications this month</div>
           <div className="v">4</div>
         </div>
         <div className="stat" style={{flex: 1}}>
-          <div className="l">Сохранено</div>
+          <div className="l">Saved</div>
           <div className="v">{savedIds.length}</div>
         </div>
       </div>
@@ -71,11 +70,11 @@ function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
       <div className="col gap-16">
         <div className="row" style={{justifyContent: 'space-between'}}>
           <div className="col gap-4">
-            <div className="h2" style={{fontSize: 22}}>Рекомендуемые вакансии</div>
-            <div className="muted" style={{fontSize: 13}}>Отсортированы по совпадению с вашим профилем</div>
+            <div className="h2" style={{fontSize: 22}}>Recommended jobs</div>
+            <div className="muted" style={{fontSize: 13}}>Sorted by match with your profile</div>
           </div>
           <button className="btn btn-ghost btn-sm" onClick={()=>onNav('search')}>
-            Все вакансии <Icon.Arrow />
+            All jobs <Icon.Arrow />
           </button>
         </div>
 
@@ -97,10 +96,10 @@ function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
         gap: 24, flexWrap: 'wrap'
       }}>
         <div className="col gap-4">
-          <div className="h4">Хотите более точные подборки?</div>
-          <div className="muted" style={{fontSize: 13}}>Дополните профиль — займёт пару минут.</div>
+          <div className="h4">Want more accurate matches?</div>
+          <div className="muted" style={{fontSize: 13}}>Complete your profile — takes just a few minutes.</div>
         </div>
-        <button className="btn btn-mint" onClick={()=>onNav('profile')}>Обновить профиль</button>
+        <button className="btn btn-mint" onClick={()=>onNav('profile')}>Update profile</button>
       </div>
     </div>
   );
@@ -147,8 +146,8 @@ function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
     <div className="col gap-24">
       <div className="topbar">
         <div className="col gap-4">
-          <div className="eyebrow">Поиск</div>
-          <div className="h1" style={{fontSize: 32}}>Найти подходящую вакансию</div>
+          <div className="eyebrow">Search</div>
+          <div className="h1" style={{fontSize: 32}}>Find the right job</div>
         </div>
         <Avatar name={user.name} />
       </div>
@@ -156,10 +155,10 @@ function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
       <div className="search-hero">
         <div className="search-bar">
           <Icon.Search />
-          <input placeholder="Например, React, продакт-дизайнер, аналитик..."
+          <input placeholder="e.g. React, product designer, analyst..."
             value={query} onChange={e=>setQuery(e.target.value)} />
           <button className="btn btn-primary btn-sm">
-            Искать
+            Search
           </button>
         </div>
         <div className="row" style={{justifyContent: 'space-between', marginTop: 16, flexWrap: 'wrap', gap: 12}}>
@@ -175,7 +174,7 @@ function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
             <input type="checkbox" checked={useAI} onChange={e=>setUseAI(e.target.checked)}
               style={{accentColor: 'var(--accent-strong)'}} />
             <span style={{display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--accent-strong)'}}>
-              <Icon.AI /> AI-семантический поиск
+              <Icon.AI /> AI semantic search
             </span>
           </label>
         </div>
@@ -184,12 +183,12 @@ function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
       <div style={{display: 'grid', gridTemplateColumns: '260px 1fr', gap: 24, alignItems: 'flex-start'}}>
         <div className="filter-card">
           <div className="row" style={{justifyContent: 'space-between', marginBottom: 14}}>
-            <div className="h4" style={{fontSize: 14}}>Фильтры</div>
-            <button className="arrow-link" onClick={()=>{ setActiveTags([]); setMinMatch(0); setFormat('all'); }}>Сбросить</button>
+            <div className="h4" style={{fontSize: 14}}>Filters</div>
+            <button className="arrow-link" onClick={()=>{ setActiveTags([]); setMinMatch(0); setFormat('all'); }}>Reset</button>
           </div>
 
           <div className="col gap-8" style={{marginBottom: 18}}>
-            <div className="eyebrow">Минимальное совпадение</div>
+            <div className="eyebrow">Min. match</div>
             <div className="row" style={{justifyContent: 'space-between'}}>
               <div className="muted" style={{fontSize: 12}}>0%</div>
               <div style={{fontWeight: 700, fontSize: 14}}>{minMatch}%+</div>
@@ -201,13 +200,13 @@ function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
           </div>
 
           <div className="col gap-8" style={{marginBottom: 18}}>
-            <div className="eyebrow">Формат</div>
+            <div className="eyebrow">Format</div>
             <div className="col gap-6">
               {[
-                {id: 'all', label: 'Все'},
-                {id: 'удалён', label: 'Удалённо'},
-                {id: 'гибрид', label: 'Гибрид'},
-                {id: 'офис', label: 'Офис'}
+                {id: 'all', label: 'All'},
+                {id: 'remote', label: 'Remote'},
+                {id: 'hybrid', label: 'Hybrid'},
+                {id: 'office', label: 'Office'}
               ].map(f => (
                 <label key={f.id} className="row gap-8" style={{fontSize: 13, cursor: 'pointer'}}>
                   <input type="radio" name="fmt" checked={format===f.id} onChange={()=>setFormat(f.id)}
@@ -219,7 +218,7 @@ function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
           </div>
 
           <div className="col gap-8">
-            <div className="eyebrow">Навыки</div>
+            <div className="eyebrow">Skills</div>
             <div className="row gap-6" style={{flexWrap: 'wrap'}}>
               {allTags.map(t => (
                 <Chip key={t} on={activeTags.includes(t)} onClick={()=>toggleTag(t)}>{t}</Chip>
@@ -231,19 +230,19 @@ function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
         <div className="col gap-12">
           <div className="row" style={{justifyContent: 'space-between'}}>
             <div className="muted" style={{fontSize: 13}}>
-              Найдено <strong style={{color: 'var(--text)'}}>{results.length}</strong> вакансий
-              {activeTags.length > 0 && ` · по навыкам: ${activeTags.join(', ')}`}
+              Found <strong style={{color: 'var(--text)'}}>{results.length}</strong> jobs
+              {activeTags.length > 0 && ` · by skills: ${activeTags.join(', ')}`}
             </div>
             <div className="seg">
-              <button className="is-on">По совпадению</button>
-              <button>Свежие</button>
+              <button className="is-on">By match</button>
+              <button>Recent</button>
             </div>
           </div>
 
           {results.length === 0 ? (
             <div className="card" style={{padding: 40, textAlign: 'center'}}>
-              <div className="h3" style={{marginBottom: 6}}>Ничего не найдено</div>
-              <div className="muted">Попробуйте снять часть фильтров.</div>
+              <div className="h3" style={{marginBottom: 6}}>No results found</div>
+              <div className="muted">Try removing some filters.</div>
             </div>
           ) : (
             <div className="col gap-12">
@@ -267,8 +266,8 @@ function ProfilePage({ user, profile, onSave, onNav }) {
     <div className="col gap-24">
       <div className="topbar">
         <div className="col gap-4">
-          <div className="eyebrow">Профиль</div>
-          <div className="h1" style={{fontSize: 32}}>Ваши навыки и опыт</div>
+          <div className="eyebrow">Profile</div>
+          <div className="h1" style={{fontSize: 32}}>Your skills & experience</div>
         </div>
         <Avatar name={user.name} />
       </div>
@@ -286,7 +285,7 @@ function ProfilePage({ user, profile, onSave, onNav }) {
           <div className="muted" style={{fontSize: 13}}>{user.email}</div>
         </div>
         <div className="col gap-4" style={{alignItems: 'flex-end'}}>
-          <div style={{fontSize: 12, color: 'var(--text-muted)', fontWeight: 600}}>Полнота профиля</div>
+          <div style={{fontSize: 12, color: 'var(--text-muted)', fontWeight: 600}}>Profile completeness</div>
           <div className="row gap-8">
             <div style={{width: 120, height: 8, background: 'var(--surface-2)', borderRadius: 999, overflow: 'hidden'}}>
               <div style={{width: '78%', height: '100%', background: 'var(--accent-strong)'}}></div>
@@ -313,8 +312,8 @@ function SavedPage({ user, savedIds, onOpenJob, onSave }) {
     <div className="col gap-24">
       <div className="topbar">
         <div className="col gap-4">
-          <div className="eyebrow">Сохранённые</div>
-          <div className="h1" style={{fontSize: 32}}>Закладки</div>
+          <div className="eyebrow">Saved</div>
+          <div className="h1" style={{fontSize: 32}}>Bookmarks</div>
         </div>
         <Avatar name={user.name} />
       </div>
@@ -329,8 +328,8 @@ function SavedPage({ user, savedIds, onOpenJob, onSave }) {
           }}>
             <Icon.Bookmark width={24} height={24} />
           </div>
-          <div className="h3" style={{marginBottom: 6}}>Здесь пока пусто</div>
-          <div className="muted">Нажмите «Сохранить» на любой вакансии — и она появится тут.</div>
+          <div className="h3" style={{marginBottom: 6}}>Nothing here yet</div>
+          <div className="muted">Click "Save" on any job and it will appear here.</div>
         </div>
       ) : (
         <div className="col gap-12">

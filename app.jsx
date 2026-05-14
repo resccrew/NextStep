@@ -18,7 +18,7 @@ function App() {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   const handleLogin = (u) => {
-    setUser({ ...u, title: 'Frontend-разработчик' });
+    setUser({ ...u, title: 'Frontend Developer' });
     setNeedsOnboarding(true);
   };
 
@@ -26,7 +26,7 @@ function App() {
     setProfile(prev => ({ ...prev, ...p }));
     setNeedsOnboarding(false);
     setPage('home');
-    setToast('Профиль сохранён. Подборка обновлена.');
+    setToast('Profile saved. Feed updated.');
   };
 
   const toggleSave = (id) => {
@@ -63,7 +63,7 @@ function App() {
       onSave={toggleSave} />;
   } else if (page === 'profile') {
     content = <ProfilePage user={user} profile={profile}
-      onSave={(p) => { setProfile(prev => ({...prev, ...p})); setToast('Профиль обновлён.'); }}
+      onSave={(p) => { setProfile(prev => ({...prev, ...p})); setToast('Profile updated.'); }}
       onNav={setPage} />;
   } else if (page === 'saved') {
     content = <SavedPage user={user} savedIds={savedIds}

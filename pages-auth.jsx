@@ -40,7 +40,7 @@ function LoginPage({ onLogin }) {
     if (flying) return;
     setFlying(true);
     setTimeout(() => {
-      onLogin({ name: name || (email.split('@')[0] || 'Анна Орлова'), email: email || 'anna@example.com' });
+      onLogin({ name: name || (email.split('@')[0] || 'Anna Smith'), email: email || 'anna@example.com' });
     }, 1700);
   };
 
@@ -63,7 +63,7 @@ function LoginPage({ onLogin }) {
           <img src="assets/logo.png" alt="" width={28} height={28} style={{borderRadius: 7, display:'block'}} />
           <div style={{fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em'}}>NextStep</div>
         </div>
-        <a href="#" style={{fontSize: 13, color: 'var(--text-muted)', fontWeight: 500}}>Нужна помощь?</a>
+        <a href="#" style={{fontSize: 13, color: 'var(--text-muted)', fontWeight: 500}}>Need help?</a>
       </div>
 
       <div className="auth-stage">
@@ -72,53 +72,53 @@ function LoginPage({ onLogin }) {
 
           <div className="col gap-6" style={{textAlign: 'center'}}>
             <div className="h2" style={{fontSize: 26}}>
-              {mode === 'signin' ? 'С возвращением' : 'Создайте аккаунт'}
+              {mode === 'signin' ? 'Welcome back' : 'Create an account'}
             </div>
             <div className="muted" style={{fontSize: 14}}>
               {mode === 'signin'
-                ? 'Войдите, чтобы увидеть свежие подборки.'
-                : 'Это займёт пару минут.'}
+                ? 'Sign in to see your fresh picks.'
+                : 'Takes a couple of minutes.'}
             </div>
           </div>
 
           <div className="seg" style={{alignSelf: 'center'}}>
-            <button className={mode==='signin' ? 'is-on' : ''} onClick={()=>setMode('signin')}>Вход</button>
-            <button className={mode==='signup' ? 'is-on' : ''} onClick={()=>setMode('signup')}>Регистрация</button>
+            <button className={mode==='signin' ? 'is-on' : ''} onClick={()=>setMode('signin')}>Sign in</button>
+            <button className={mode==='signup' ? 'is-on' : ''} onClick={()=>setMode('signup')}>Sign up</button>
           </div>
 
           <form className="col gap-14" onSubmit={submit}>
             {mode === 'signup' && (
               <div className="field">
-                <label className="field-label">Как к вам обращаться</label>
-                <input className="input" placeholder="Анна Орлова" value={name} onChange={e=>setName(e.target.value)} />
+                <label className="field-label">Your name</label>
+                <input className="input" placeholder="Anna Smith" value={name} onChange={e=>setName(e.target.value)} />
               </div>
             )}
             <div className="field">
-              <label className="field-label">Электронная почта</label>
+              <label className="field-label">Email</label>
               <input className="input" type="email" placeholder="you@example.com" value={email} onChange={e=>setEmail(e.target.value)} />
             </div>
             <div className="field">
-              <label className="field-label">Пароль</label>
+              <label className="field-label">Password</label>
               <input className="input" type="password" placeholder="••••••••" defaultValue="demo1234" />
               {mode === 'signin' && (
                 <div className="row" style={{justifyContent: 'flex-end'}}>
-                  <a href="#" style={{fontSize: 12, color: 'var(--text-muted)', fontWeight: 500}}>Забыли пароль?</a>
+                  <a href="#" style={{fontSize: 12, color: 'var(--text-muted)', fontWeight: 500}}>Forgot password?</a>
                 </div>
               )}
             </div>
 
             <button type="submit" className="btn btn-primary btn-lg" style={{width: '100%', marginTop: 4}}>
-              {mode === 'signin' ? 'Войти' : 'Создать аккаунт'} <Icon.Arrow />
+              {mode === 'signin' ? 'Sign in' : 'Create account'} <Icon.Arrow />
             </button>
 
-            <div className="divider">или</div>
+            <div className="divider">or</div>
 
             <button type="button" className="btn btn-ghost" style={{width: '100%'}} onClick={submit}>
               <span style={{
                 width: 16, height: 16, borderRadius: 4,
                 background: 'conic-gradient(from 0deg, #EA4335, #FBBC05, #34A853, #4285F4, #EA4335)'
               }}></span>
-              Продолжить с Google
+              Continue with Google
             </button>
           </form>
         </div>
@@ -131,10 +131,10 @@ function LoginPage({ onLogin }) {
 
 // ============ Onboarding Page (Skills + Experience) ============
 const EXP_LEVELS = [
-  { id: 'junior',   label: 'Начинающий',  years: '0 – 1 год',   pct: 15 },
-  { id: 'middle',   label: 'Средний',     years: '1 – 3 года',  pct: 40 },
-  { id: 'senior',   label: 'Опытный',     years: '3 – 6 лет',   pct: 70 },
-  { id: 'lead',     label: 'Лид / Эксперт',  years: '6+ лет',    pct: 95 }
+  { id: 'junior',   label: 'Junior',      years: '0 – 1 year',   pct: 15 },
+  { id: 'middle',   label: 'Mid-level',   years: '1 – 3 years',  pct: 40 },
+  { id: 'senior',   label: 'Senior',      years: '3 – 6 years',  pct: 70 },
+  { id: 'lead',     label: 'Lead / Expert', years: '6+ years',   pct: 95 }
 ];
 
 function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
@@ -161,36 +161,36 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
       {!embedded && (
         <div className="row" style={{justifyContent: 'space-between', marginBottom: 24}}>
           <Logo size={28} />
-          <button className="btn btn-ghost btn-sm" onClick={onSkip}>Пропустить пока</button>
+          <button className="btn btn-ghost btn-sm" onClick={onSkip}>Skip for now</button>
         </div>
       )}
 
       <div className="steps" style={{marginBottom: 20}}>
-        <span className={`pill ${step>=1 ? 'is-on' : ''}`}>1 · О вас</span>
+        <span className={`pill ${step>=1 ? 'is-on' : ''}`}>1 · About you</span>
         <span style={{width: 16, height: 1, background: 'var(--border)'}}></span>
-        <span className={`pill ${step>=2 ? 'is-on' : ''}`}>2 · Навыки</span>
+        <span className={`pill ${step>=2 ? 'is-on' : ''}`}>2 · Skills</span>
         <span style={{width: 16, height: 1, background: 'var(--border)'}}></span>
-        <span className={`pill ${step>=3 ? 'is-on' : ''}`}>3 · Предпочтения</span>
+        <span className={`pill ${step>=3 ? 'is-on' : ''}`}>3 · Preferences</span>
       </div>
 
       {step === 1 && (
         <div className="col gap-20">
           <div className="col gap-6">
-            <div className="h1" style={{fontSize: 34}}>Начнём с простого.</div>
+            <div className="h1" style={{fontSize: 34}}>Let's start simple.</div>
             <div className="muted" style={{fontSize: 15}}>
-              Расскажите, кого вы ищете. Чем точнее — тем умнее подборки.
+              Tell us what you're looking for. The more specific, the smarter the matches.
             </div>
           </div>
 
           <div className="field">
-            <label className="field-label">Какую работу вы ищете?</label>
-            <input className="input" placeholder="Например, Frontend-разработчик"
+            <label className="field-label">What kind of job are you looking for?</label>
+            <input className="input" placeholder="e.g. Frontend Developer"
               value={role} onChange={e=>setRole(e.target.value)} />
-            <div className="field-hint">AI поймёт близкие названия: Front-end Engineer, JS-разработчик, UI Engineer.</div>
+            <div className="field-hint">AI understands similar titles: Front-end Engineer, JS Developer, UI Engineer.</div>
           </div>
 
           <div className="field">
-            <label className="field-label">Ваш уровень</label>
+            <label className="field-label">Your level</label>
             <div className="row gap-8" style={{flexWrap: 'wrap', marginTop: 4}}>
               {EXP_LEVELS.map(l => (
                 <button key={l.id} className={`chip ${exp===l.id ? 'is-on' : ''}`} onClick={()=>setExp(l.id)}>
@@ -206,7 +206,7 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
 
           <div className="row" style={{justifyContent: 'flex-end', marginTop: 12}}>
             <button className="btn btn-primary" disabled={!canNext1} onClick={()=>setStep(2)} style={{opacity: canNext1?1:0.5}}>
-              Дальше <Icon.Arrow />
+              Next <Icon.Arrow />
             </button>
           </div>
         </div>
@@ -215,9 +215,9 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
       {step === 2 && (
         <div className="col gap-20">
           <div className="col gap-6">
-            <div className="h1" style={{fontSize: 34}}>Ваши навыки</div>
+            <div className="h1" style={{fontSize: 34}}>Your skills</div>
             <div className="muted" style={{fontSize: 15}}>
-              Отметьте минимум три. AI учтёт близкие технологии автоматически.
+              Select at least three. AI will account for related technologies automatically.
             </div>
           </div>
 
@@ -246,7 +246,7 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
 
           {skills.length > 0 && (
             <div className="col gap-8">
-              <div className="eyebrow">Вы выбрали ({skills.length})</div>
+              <div className="eyebrow">Selected ({skills.length})</div>
               <div className="row gap-6" style={{flexWrap: 'wrap'}}>
                 {skills.map(s => (
                   <Chip key={s} on={true} removable onRemove={()=>toggleSkill(s)} onClick={()=>{}}>
@@ -258,9 +258,9 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
           )}
 
           <div className="row" style={{justifyContent: 'space-between', marginTop: 12}}>
-            <button className="btn btn-ghost" onClick={()=>setStep(1)}>Назад</button>
+            <button className="btn btn-ghost" onClick={()=>setStep(1)}>Back</button>
             <button className="btn btn-primary" disabled={!canNext2} onClick={()=>setStep(3)} style={{opacity: canNext2?1:0.5}}>
-              Дальше <Icon.Arrow />
+              Next <Icon.Arrow />
             </button>
           </div>
         </div>
@@ -269,20 +269,20 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
       {step === 3 && (
         <div className="col gap-20">
           <div className="col gap-6">
-            <div className="h1" style={{fontSize: 34}}>Как любите работать?</div>
+            <div className="h1" style={{fontSize: 34}}>How do you like to work?</div>
             <div className="muted" style={{fontSize: 15}}>
-              Это поможет отфильтровать неподходящие предложения.
+              This helps filter out irrelevant offers.
             </div>
           </div>
 
           <div className="field">
-            <label className="field-label">Формат работы</label>
+            <label className="field-label">Work format</label>
             <div className="row gap-8" style={{flexWrap: 'wrap', marginTop: 4}}>
               {[
-                {id: 'remote', label: 'Удалённо'},
-                {id: 'hybrid', label: 'Гибрид'},
-                {id: 'office', label: 'Офис'},
-                {id: 'relocation', label: 'Готов(а) к релокации'}
+                {id: 'remote', label: 'Remote'},
+                {id: 'hybrid', label: 'Hybrid'},
+                {id: 'office', label: 'Office'},
+                {id: 'relocation', label: 'Open to relocation'}
               ].map(f => (
                 <Chip key={f.id} on={formats.includes(f.id)} onClick={()=>toggleFormat(f.id)}>{f.label}</Chip>
               ))}
@@ -290,11 +290,11 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
           </div>
 
           <div className="field">
-            <label className="field-label">Ожидаемая зарплата</label>
+            <label className="field-label">Expected salary</label>
             <div className="row" style={{justifyContent: 'space-between'}}>
-              <div className="muted" style={{fontSize: 13}}>от 60 000 ₽</div>
-              <div style={{fontWeight: 700, fontSize: 16}}>{salary * 1000} ₽</div>
-              <div className="muted" style={{fontSize: 13}}>до 500 000 ₽</div>
+              <div className="muted" style={{fontSize: 13}}>from $1,000</div>
+              <div style={{fontWeight: 700, fontSize: 16}}>${salary * 10}</div>
+              <div className="muted" style={{fontSize: 13}}>up to $10,000</div>
             </div>
             <input type="range" min={60} max={500} step={10} value={salary}
               onChange={e=>setSalary(+e.target.value)}
@@ -308,20 +308,20 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
           }}>
             <span style={{color: 'var(--accent-strong)', marginTop: 2}}><Icon.AI /></span>
             <div className="col gap-4">
-              <div style={{fontWeight: 700, fontSize: 14, color: 'var(--accent-ink)'}}>Готово к подбору</div>
+              <div style={{fontWeight: 700, fontSize: 14, color: 'var(--accent-ink)'}}>Ready to match</div>
               <div style={{fontSize: 13, color: 'var(--accent-ink)', opacity: 0.85, lineHeight: 1.5}}>
-                Найдём {Math.max(8, skills.length * 4)} вакансий с релевантностью выше 70%.
-                Подборка обновляется ежедневно.
+                We'll find {Math.max(8, skills.length * 4)} jobs with over 70% relevance.
+                Updated daily.
               </div>
             </div>
           </div>
 
           <div className="row" style={{justifyContent: 'space-between', marginTop: 12}}>
-            <button className="btn btn-ghost" onClick={()=>setStep(2)}>Назад</button>
+            <button className="btn btn-ghost" onClick={()=>setStep(2)}>Back</button>
             <button className="btn btn-mint btn-lg" onClick={()=>onSave({
               role, experience: exp, skills, formats, salary, onboardingDone: true
             })}>
-              Показать вакансии <Icon.Arrow />
+              Show jobs <Icon.Arrow />
             </button>
           </div>
         </div>
