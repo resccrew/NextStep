@@ -1,12 +1,12 @@
+/*---------------------------------------New version --------------------------------------------------------*/
+
 /* global React, SKILL_GROUPS, JOBS, Icon, Logo, MatchMeter, Avatar, Chip, JobCard */
 const { useState: useStateP, useMemo: useMemoP, useEffect: useEffectP } = React;
 
 // ============ Login Page ============
-// Diagonal flowing arcs sweeping across the screen — different look from vertical stalks.
 const STALKS = (() => {
   const arr = [];
   const N = 5;
-  // each line: starts off-bottom-left, arcs up and to the right, exits top-right
   const configs = [
     { y0:1200, c1x: 200, c1y:1040, c2x: 700, c2y: 560, x1: 1100, y1: 700 },
     { y0:1080, c1x: 320, c1y: 860, c2x: 820, c2y: 380, x1: 1300, y1: 540 },
@@ -33,15 +33,100 @@ function LoginPage({ onLogin }) {
   const [mode, setMode] = useStateP('signin');
   const [email, setEmail] = useStateP('');
   const [name, setName] = useStateP('');
+  const [password, setPassword] = useStateP('');
+  const [error, setError] = useStateP('');
   const [flying, setFlying] = useStateP(false);
 
-  const submit = (e) => {
+  const API_BASE_URL = 'http://127.0.0.1:8000/api/users';
+  const GOOGLE_CLIENT_ID = "80208761057-im8lepibi8b7doe94q4t02hat5kbkr0p.apps.googleusercontent.com";
+
+  useEffectP(() => {
+    if (window.google) {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleResponse
+      });
+
+      window.google.accounts.id.renderButton(
+        document.getElementById("google-btn-div"),
+        { theme: "outline", size: "large", width: "100%", shape: "rectangular" }
+      );
+    }
+  }, []);
+
+  const handleGoogleResponse = async (response) => {
+    if (flying) return;
+    setError('');
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/google/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: response.credential }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Google authorization error');
+      }
+
+      localStorage.setItem('access_token', data.access);
+      localStorage.setItem('refresh_token', data.refresh);
+
+      setFlying(true);
+      setTimeout(() => {
+        onLogin(data.user);
+      }, 1700);
+
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const submit = async (e) => {
     if (e) e.preventDefault();
     if (flying) return;
-    setFlying(true);
-    setTimeout(() => {
-      onLogin({ name: name || (email.split('@')[0] || 'Anna Smith'), email: email || 'anna@example.com' });
-    }, 1700);
+    setError('');
+
+    const endpoint = mode === 'signin' ? '/login/' : '/register/';
+
+    const payload = mode === 'signin'
+      ? { username: email, password: password }
+      : {
+          username: name || email.split('@')[0],
+          email: email,
+          password: password
+        };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMsg = data.detail || (data.username && data.username[0]) || 'Authorization error';
+        throw new Error(errorMsg);
+      }
+
+      localStorage.setItem('access_token', data.access);
+      localStorage.setItem('refresh_token', data.refresh);
+
+      setFlying(true);
+
+      setTimeout(() => {
+        onLogin(data.user);
+      }, 1700);
+
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -82,26 +167,35 @@ function LoginPage({ onLogin }) {
           </div>
 
           <div className="seg" style={{alignSelf: 'center'}}>
-            <button className={mode==='signin' ? 'is-on' : ''} onClick={()=>setMode('signin')}>Sign in</button>
-            <button className={mode==='signup' ? 'is-on' : ''} onClick={()=>setMode('signup')}>Sign up</button>
+            <button className={mode==='signin' ? 'is-on' : ''} onClick={()=>{setMode('signin'); setError('');}}>Sign in</button>
+            <button className={mode==='signup' ? 'is-on' : ''} onClick={()=>{setMode('signup'); setError('');}}>Sign up</button>
           </div>
 
           <form className="col gap-14" onSubmit={submit}>
-            {mode === 'signup' && (
-              <div className="field">
-                <label className="field-label">Your name</label>
-                <input className="input" placeholder="Anna Smith" value={name} onChange={e=>setName(e.target.value)} />
+            {error && (
+              <div style={{ color: '#EA4335', fontSize: '14px', textAlign: 'center', backgroundColor: '#FCE8E6', padding: '8px', borderRadius: '8px' }}>
+                {error}
               </div>
             )}
+
+            {mode === 'signup' && (
+              <div className="field">
+                <label className="field-label">Your name (Username)</label>
+                <input className="input" placeholder="Anna Smith" value={name} onChange={e=>setName(e.target.value)} required />
+              </div>
+            )}
+
             <div className="field">
-              <label className="field-label">Email</label>
-              <input className="input" type="email" placeholder="you@example.com" value={email} onChange={e=>setEmail(e.target.value)} />
+              <label className="field-label">Email / Username</label>
+              <input className="input" type="text" placeholder="you@example.com" value={email} onChange={e=>setEmail(e.target.value)} required />
             </div>
+
             <div className="field">
               <label className="field-label">Password</label>
-              <input className="input" type="password" placeholder="••••••••" defaultValue="demo1234" />
+              <input className="input" type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)} required />
+
               {mode === 'signin' && (
-                <div className="row" style={{justifyContent: 'flex-end'}}>
+                <div className="row" style={{justifyContent: 'flex-end', marginTop: 4}}>
                   <a href="#" style={{fontSize: 12, color: 'var(--text-muted)', fontWeight: 500}}>Forgot password?</a>
                 </div>
               )}
@@ -112,14 +206,7 @@ function LoginPage({ onLogin }) {
             </button>
 
             <div className="divider">or</div>
-
-            <button type="button" className="btn btn-ghost" style={{width: '100%'}} onClick={submit}>
-              <span style={{
-                width: 16, height: 16, borderRadius: 4,
-                background: 'conic-gradient(from 0deg, #EA4335, #FBBC05, #34A853, #4285F4, #EA4335)'
-              }}></span>
-              Continue with Google
-            </button>
+            <div id="google-btn-div" style={{width: '100%'}}></div>
           </form>
         </div>
       </div>
@@ -131,10 +218,10 @@ function LoginPage({ onLogin }) {
 
 // ============ Onboarding Page (Skills + Experience) ============
 const EXP_LEVELS = [
-  { id: 'junior',   label: 'Junior',      years: '0 – 1 year',   pct: 15 },
-  { id: 'middle',   label: 'Mid-level',   years: '1 – 3 years',  pct: 40 },
-  { id: 'senior',   label: 'Senior',      years: '3 – 6 years',  pct: 70 },
-  { id: 'lead',     label: 'Lead / Expert', years: '6+ years',   pct: 95 }
+  { id: 'junior',   label: 'Junior',        years: '0 – 1 year',   pct: 15 },
+  { id: 'middle',   label: 'Mid-level',     years: '1 – 3 years',  pct: 40 },
+  { id: 'senior',   label: 'Senior',        years: '3 – 6 years',  pct: 70 },
+  { id: 'lead',     label: 'Lead / Expert', years: '6+ years',     pct: 95 }
 ];
 
 function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
@@ -146,6 +233,8 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
   const [salary, setSalary] = useStateP(profile.salary || 200);
   const [role, setRole] = useStateP(profile.role || '');
 
+  const [isSaving, setIsSaving] = useStateP(false);
+
   const toggleSkill = (s) => setSkills(prev => prev.includes(s) ? prev.filter(x=>x!==s) : [...prev, s]);
   const toggleFormat = (f) => setFormats(prev => prev.includes(f) ? prev.filter(x=>x!==f) : [...prev, f]);
 
@@ -154,7 +243,43 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
 
   const canNext1 = !!role.trim();
   const canNext2 = skills.length >= 3;
-  const canFinish = true;
+
+  const handleSaveData = async () => {
+    setIsSaving(true);
+
+    const dataToSave = {
+      role: role,
+      experience: exp,
+      skills: skills,
+      formats: formats,
+      salary: salary,
+      onboarding_done: true
+    };
+
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch('http://127.0.0.1:8000/api/users/onboarding/', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(dataToSave)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save data on the server');
+      }
+
+      onSave(dataToSave);
+
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to save data. Please check your server connection.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div style={{maxWidth: 760, margin: '0 auto', padding: embedded ? '0' : '48px 24px'}}>
