@@ -443,8 +443,10 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
 
           <div className="row" style={{justifyContent: 'space-between', marginTop: 12}}>
             <button className="btn btn-ghost" onClick={()=>setStep(2)}>Back</button>
-            <button className="btn btn-mint btn-lg" onClick={handleSaveData} disabled={isSaving}>
-              {isSaving ? 'Saving...' : 'Show jobs'} <Icon.Arrow />
+            <button className="btn btn-mint btn-lg" onClick={()=>onSave({
+              role, experience: exp, skills, formats, salary, onboardingDone: true
+            })}>
+              Show jobs <Icon.Arrow />
             </button>
           </div>
         </div>
