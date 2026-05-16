@@ -4,105 +4,129 @@ const { useState: useStateH, useMemo: useMemoH, useEffect: useEffectH } = React;
 // ============ Home / Recommendations ============
 function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
   const recommended = useMemoH(() => {
-    return [...JOBS].sort((a,b)=>b.match-a.match).slice(0, 5);
+    return [...JOBS].sort((a, b) => b.match - a.match).slice(0, 5);
   }, []);
   const topMatch = recommended[0];
-  const matchAvg = Math.round(recommended.reduce((s,j)=>s+j.match,0) / recommended.length);
+  const rest = recommended.slice(1);
 
   const firstName = (user.name || '').split(' ')[0] || 'Anna';
+  const matchAvg = Math.round(recommended.reduce((s, j) => s + j.match, 0) / recommended.length);
+  const newToday = recommended.length + 3;
+  const applications = 4;
+
+  const completeness = useMemoH(() => {
+    let pct = 30;
+    if (profile.role) pct += 15;
+    if (profile.skills && profile.skills.length) pct += Math.min(25, profile.skills.length * 5);
+    if (profile.experience) pct += 10;
+    if (profile.formats && profile.formats.length) pct += 10;
+    if (profile.salary) pct += 10;
+    return Math.min(100, pct);
+  }, [profile]);
 
   return (
-    <div className="col gap-32">
-      <div className="topbar">
+    <div className="home-edit">
+      <header className="home-greet">
         <div className="col gap-4">
-          <div className="eyebrow row gap-6"><span className="live-dot"></span> Today's picks</div>
-          <div className="h1">Hi, {firstName}.</div>
-        </div>
-        <div className="row gap-12">
-          <button className="btn btn-ghost btn-sm"><Icon.Bell /></button>
-          <Avatar name={user.name} />
-        </div>
-      </div>
-
-      <div className="greeting-card">
-        <div className="blob"></div>
-        <div className="row" style={{justifyContent: 'space-between', alignItems: 'flex-start', gap: 24, position: 'relative'}}>
-          <div className="col gap-8" style={{maxWidth: 460}}>
-            <div className="eyebrow">Top match</div>
-            <div className="h2">{topMatch.title}</div>
-            <div className="muted">{topMatch.company} · {topMatch.location} · {topMatch.salary}</div>
-            <div style={{fontSize: 14, lineHeight: 1.5, marginTop: 6}}>
-              AI thinks this job matches your profile
-              by <strong>{topMatch.match}%</strong>. Apply with a tailored resume in one click.
-            </div>
-            <div className="row gap-10" style={{marginTop: 14}}>
-              <button className="btn btn-primary" onClick={()=>onOpenJob(topMatch)}>
-                View <Icon.Arrow />
-              </button>
-              <button className="btn btn-ghost" onClick={()=>onNav('search')}>
-                All jobs
-              </button>
-            </div>
+          <div className="eyebrow row gap-6"><span className="live-dot"></span> Today · {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
+          <h1 className="home-hello">Hi&nbsp;<em>{firstName}</em>.</h1>
+          <div className="home-subhello">
+            {newToday} new roles since yesterday. Top match is&nbsp;
+            <strong>{topMatch.match}%</strong>&nbsp;— start there.
           </div>
-          <MatchMeter pct={topMatch.match} size={120} stroke={8} />
         </div>
-      </div>
+      </header>
 
-      <div className="row gap-16">
-        <div className="stat" style={{flex: 1}}>
-          <div className="l">New today</div>
-          <div className="v">{recommended.length + 3}</div>
+      <section className="stats-strip" aria-label="Today at a glance">
+        <button className="stats-cell" onClick={() => onNav('search')}>
+          <span className="stats-val">{newToday}</span>
+          <span className="stats-lbl">New today</span>
+        </button>
+        <div className="stats-cell">
+          <span className="stats-val">{matchAvg}<span className="stats-unit">%</span></span>
+          <span className="stats-lbl">Avg. match</span>
         </div>
-        <div className="stat" style={{flex: 1}}>
-          <div className="l">Avg. match</div>
-          <div className="v">{matchAvg}%</div>
+        <div className="stats-cell">
+          <span className="stats-val">{applications}</span>
+          <span className="stats-lbl">Applied this month</span>
         </div>
-        <div className="stat" style={{flex: 1}}>
-          <div className="l">Applications this month</div>
-          <div className="v">4</div>
-        </div>
-        <div className="stat" style={{flex: 1}}>
-          <div className="l">Saved</div>
-          <div className="v">{savedIds.length}</div>
-        </div>
-      </div>
+        <button className="stats-cell" onClick={() => onNav('saved')}>
+          <span className="stats-val">{savedIds.length}</span>
+          <span className="stats-lbl">Saved <Icon.Arrow /></span>
+        </button>
+      </section>
 
-      <div className="col gap-16">
-        <div className="row" style={{justifyContent: 'space-between'}}>
-          <div className="col gap-4">
-            <div className="h2" style={{fontSize: 22}}>Recommended jobs</div>
-            <div className="muted" style={{fontSize: 13}}>Sorted by match with your profile</div>
+      <section className="home-feature" onClick={() => onOpenJob(topMatch)}>
+        <div className="home-feature-meta">
+          <div className="eyebrow row gap-8">
+            <span className="dot-mint" aria-hidden="true"></span>
+            Top match for you
           </div>
-          <button className="btn btn-ghost btn-sm" onClick={()=>onNav('search')}>
-            All jobs <Icon.Arrow />
+          <div className="home-feature-pct">
+            <MatchMeter pct={topMatch.match} size={56} stroke={4} />
+          </div>
+        </div>
+        <h2 className="home-feature-title">{topMatch.title}</h2>
+        <div className="home-feature-sub muted">
+          {topMatch.company} · {topMatch.location} · {topMatch.salary}
+        </div>
+        <p className="home-feature-why">
+          <span className="eyebrow" style={{display:'inline', marginRight: 6}}>Why</span>
+          {topMatch.why}. Tags overlap: {topMatch.tags.slice(0, 3).join(', ')}.
+        </p>
+        <div className="home-feature-row">
+          <button className="btn btn-primary btn-lg" onClick={(e) => { e.stopPropagation(); onOpenJob(topMatch); }}>
+            View role <Icon.Arrow />
+          </button>
+          <button className="btn btn-ghost" onClick={(e) => { e.stopPropagation(); onSave(topMatch.id); }}>
+            <Icon.Bookmark /> {savedIds.includes(topMatch.id) ? 'Saved' : 'Save for later'}
           </button>
         </div>
+      </section>
 
-        <div className="col gap-12">
-          {recommended.map(j => (
-            <JobCard key={j.id} job={j}
-              saved={savedIds.includes(j.id)}
-              onSave={()=>onSave(j.id)}
-              onOpen={()=>onOpenJob(j)} />
-          ))}
-        </div>
-      </div>
+      <section className="home-list">
+        <header className="home-list-head">
+          <div className="col gap-4">
+            <h3 className="home-list-title">More for you</h3>
+            <div className="muted home-list-sub">{rest.length} more · sorted by match</div>
+          </div>
+          <button className="home-list-all" onClick={() => onNav('search')}>
+            See all <Icon.Arrow />
+          </button>
+        </header>
+        <ul className="home-list-rows">
+          {rest.map((j) =>
+            <li key={j.id}>
+              <JobCard
+                job={j}
+                saved={savedIds.includes(j.id)}
+                onSave={() => onSave(j.id)}
+                onOpen={() => onOpenJob(j)} />
+            </li>
+          )}
+        </ul>
+      </section>
 
-      <div style={{
-        padding: 24, borderRadius: 18,
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        gap: 24, flexWrap: 'wrap'
-      }}>
-        <div className="col gap-4">
-          <div className="h4">Want more accurate matches?</div>
-          <div className="muted" style={{fontSize: 13}}>Complete your profile — takes just a few minutes.</div>
-        </div>
-        <button className="btn btn-mint" onClick={()=>onNav('profile')}>Update profile</button>
-      </div>
-    </div>
-  );
+      {completeness < 100 &&
+        <section className="home-nudge" onClick={() => onNav('profile')}>
+          <div className="home-nudge-main">
+            <div className="eyebrow">Improve your matches</div>
+            <div className="home-nudge-text">
+              Your profile is <strong>{completeness}%</strong> complete. Add a few more skills to get
+              sharper recommendations.
+            </div>
+          </div>
+          <div className="home-nudge-side">
+            <div className="home-nudge-track">
+              <div className="home-nudge-fill" style={{ width: completeness + '%' }}></div>
+            </div>
+            <button className="btn btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); onNav('profile'); }}>
+              Continue <Icon.Arrow />
+            </button>
+          </div>
+        </section>
+      }
+    </div>);
 }
 
 // ============ Search Page ============
@@ -111,237 +135,221 @@ function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
   const [minMatch, setMinMatch] = useStateH(0);
   const [activeTags, setActiveTags] = useStateH([]);
   const [format, setFormat] = useStateH('all');
-  const [useAI, setUseAI] = useStateH(true);
 
   const allTags = useMemoH(() => {
     const t = new Set();
-    JOBS.forEach(j => j.tags.forEach(x => t.add(x)));
+    JOBS.forEach((j) => j.tags.forEach((x) => t.add(x)));
     return [...t];
   }, []);
 
-  const toggleTag = (t) => setActiveTags(prev => prev.includes(t) ? prev.filter(x=>x!==t) : [...prev, t]);
+  const toggleTag = (t) => setActiveTags((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
 
   const results = useMemoH(() => {
     let r = [...JOBS];
     if (query.trim()) {
       const q = query.toLowerCase();
-      r = r.filter(j =>
+      r = r.filter((j) =>
         j.title.toLowerCase().includes(q) ||
         j.company.toLowerCase().includes(q) ||
         j.tags.join(' ').toLowerCase().includes(q)
       );
     }
     if (activeTags.length) {
-      r = r.filter(j => activeTags.some(t => j.tags.includes(t)));
+      r = r.filter((j) => activeTags.some((t) => j.tags.includes(t)));
     }
     if (format !== 'all') {
-      r = r.filter(j => j.location.toLowerCase().includes(format));
+      r = r.filter((j) => j.location.toLowerCase().includes(format));
     }
-    r = r.filter(j => j.match >= minMatch);
-    r.sort((a,b)=>b.match-a.match);
+    r = r.filter((j) => j.match >= minMatch);
+    r.sort((a, b) => b.match - a.match);
     return r;
   }, [query, activeTags, minMatch, format]);
 
   return (
-    <div className="col gap-24">
-      <div className="topbar">
+    <div className="page-edit">
+      <header className="page-head">
         <div className="col gap-4">
           <div className="eyebrow">Search</div>
-          <div className="h1" style={{fontSize: 32}}>Find the right job</div>
+          <h1 className="page-hello">Find a role.</h1>
+          <div className="page-subhello">
+            {JOBS.length} roles indexed. Try a skill, company, or keyword — we'll surface the closest
+            matches first.
+          </div>
         </div>
-        <Avatar name={user.name} />
-      </div>
+      </header>
 
-      <div className="search-hero">
-        <div className="search-bar">
+      <div className="search-wrap">
+        <div className="search-input">
           <Icon.Search />
           <input placeholder="e.g. React, product designer, analyst..."
-            value={query} onChange={e=>setQuery(e.target.value)} />
-          <button className="btn btn-primary btn-sm">
-            Search
-          </button>
+            value={query} onChange={(e) => setQuery(e.target.value)} />
+          {query && (
+            <button type="button" className="search-clear" onClick={() => setQuery('')} aria-label="Clear"><Icon.X /></button>
+          )}
         </div>
-        <div className="row" style={{justifyContent: 'space-between', marginTop: 16, flexWrap: 'wrap', gap: 12}}>
-          <div className="row gap-8" style={{flexWrap: 'wrap'}}>
-            {profile.skills && profile.skills.slice(0, 5).map(s => (
-              <Chip key={s} on={activeTags.includes(s)} onClick={()=>toggleTag(s)}>{s}</Chip>
-            ))}
-            {(!profile.skills || profile.skills.length === 0) && allTags.slice(0,5).map(s => (
-              <Chip key={s} on={activeTags.includes(s)} onClick={()=>toggleTag(s)}>{s}</Chip>
-            ))}
-          </div>
-          <label className="row gap-8" style={{fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', userSelect: 'none'}}>
-            <input type="checkbox" checked={useAI} onChange={e=>setUseAI(e.target.checked)}
-              style={{accentColor: 'var(--accent-strong)'}} />
-            <span style={{display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--accent-strong)'}}>
-              <Icon.AI /> AI semantic search
-            </span>
-          </label>
+        <div className="search-quickchips">
+          {profile.skills && profile.skills.slice(0, 5).map((s) =>
+            <Chip key={s} on={activeTags.includes(s)} onClick={() => toggleTag(s)}>{s}</Chip>
+          )}
+          {(!profile.skills || profile.skills.length === 0) && allTags.slice(0, 5).map((s) =>
+            <Chip key={s} on={activeTags.includes(s)} onClick={() => toggleTag(s)}>{s}</Chip>
+          )}
         </div>
       </div>
 
-      <div style={{display: 'grid', gridTemplateColumns: '260px 1fr', gap: 24, alignItems: 'flex-start'}}>
-        <div className="filter-card">
-          <div className="row" style={{justifyContent: 'space-between', marginBottom: 14}}>
-            <div className="h4" style={{fontSize: 14}}>Filters</div>
-            <button className="arrow-link" onClick={()=>{ setActiveTags([]); setMinMatch(0); setFormat('all'); }}>Reset</button>
+      <div className="search-layout">
+        <aside className="filters">
+          <div className="filters-head">
+            <span className="eyebrow">Filters</span>
+            <button type="button" className="filters-reset"
+              onClick={() => { setActiveTags([]); setMinMatch(0); setFormat('all'); }}>Reset</button>
           </div>
 
-          <div className="col gap-8" style={{marginBottom: 18}}>
-            <div className="eyebrow">Min. match</div>
-            <div className="row" style={{justifyContent: 'space-between'}}>
-              <div className="muted" style={{fontSize: 12}}>0%</div>
-              <div style={{fontWeight: 700, fontSize: 14}}>{minMatch}%+</div>
-              <div className="muted" style={{fontSize: 12}}>100%</div>
+          <div className="filters-block">
+            <div className="filters-label">Min. match</div>
+            <div className="filters-match-row">
+              <span className="muted" style={{ fontSize: 12 }}>0%</span>
+              <span className="filters-match-val">{minMatch}%+</span>
+              <span className="muted" style={{ fontSize: 12 }}>100%</span>
             </div>
             <input type="range" min={0} max={100} step={5} value={minMatch}
-              onChange={e=>setMinMatch(+e.target.value)}
-              style={{accentColor: 'var(--accent-strong)'}} />
+              onChange={(e) => setMinMatch(+e.target.value)} className="filters-range" />
           </div>
 
-          <div className="col gap-8" style={{marginBottom: 18}}>
-            <div className="eyebrow">Format</div>
-            <div className="col gap-6">
+          <div className="filters-block">
+            <div className="filters-label">Format</div>
+            <div className="filters-radios">
               {[
-                {id: 'all', label: 'All'},
-                {id: 'remote', label: 'Remote'},
-                {id: 'hybrid', label: 'Hybrid'},
-                {id: 'office', label: 'Office'}
-              ].map(f => (
-                <label key={f.id} className="row gap-8" style={{fontSize: 13, cursor: 'pointer'}}>
-                  <input type="radio" name="fmt" checked={format===f.id} onChange={()=>setFormat(f.id)}
-                    style={{accentColor: 'var(--accent-strong)'}} />
-                  {f.label}
+                { id: 'all', label: 'All' },
+                { id: 'remote', label: 'Remote' },
+                { id: 'hybrid', label: 'Hybrid' },
+                { id: 'office', label: 'Office' }
+              ].map((f) =>
+                <label key={f.id} className="filters-radio">
+                  <input type="radio" name="fmt" checked={format === f.id} onChange={() => setFormat(f.id)} />
+                  <span>{f.label}</span>
                 </label>
-              ))}
+              )}
             </div>
           </div>
 
-          <div className="col gap-8">
-            <div className="eyebrow">Skills</div>
-            <div className="row gap-6" style={{flexWrap: 'wrap'}}>
-              {allTags.map(t => (
-                <Chip key={t} on={activeTags.includes(t)} onClick={()=>toggleTag(t)}>{t}</Chip>
-              ))}
+          <div className="filters-block">
+            <div className="filters-label">Skills</div>
+            <div className="filters-skills">
+              {allTags.map((t) =>
+                <Chip key={t} on={activeTags.includes(t)} onClick={() => toggleTag(t)}>{t}</Chip>
+              )}
             </div>
           </div>
-        </div>
+        </aside>
 
-        <div className="col gap-12">
-          <div className="row" style={{justifyContent: 'space-between'}}>
-            <div className="muted" style={{fontSize: 13}}>
-              Found <strong style={{color: 'var(--text)'}}>{results.length}</strong> jobs
-              {activeTags.length > 0 && ` · by skills: ${activeTags.join(', ')}`}
-            </div>
-            <div className="seg">
+        <div className="search-results">
+          <div className="search-results-head">
+            <span className="muted" style={{ fontSize: 13 }}>
+              <strong style={{ color: 'var(--text)' }}>{results.length}</strong>
+              {results.length === 1 ? ' role' : ' roles'}
+              {activeTags.length > 0 && ` · ${activeTags.join(', ')}`}
+            </span>
+            <div className="seg-mini">
               <button className="is-on">By match</button>
               <button>Recent</button>
             </div>
           </div>
 
-          {results.length === 0 ? (
-            <div className="card" style={{padding: 40, textAlign: 'center'}}>
-              <div className="h3" style={{marginBottom: 6}}>No results found</div>
-              <div className="muted">Try removing some filters.</div>
-            </div>
-          ) : (
-            <div className="col gap-12">
-              {results.map(j => (
-                <JobCard key={j.id} job={j}
-                  saved={savedIds.includes(j.id)}
-                  onSave={()=>onSave(j.id)}
-                  onOpen={()=>onOpenJob(j)} />
-              ))}
-            </div>
-          )}
+          {results.length === 0 ?
+            <div className="empty-state">
+              <div className="empty-state-title">No matches</div>
+              <div className="empty-state-text">Try removing some filters.</div>
+            </div> :
+            <ul className="job-list">
+              {results.map((j) =>
+                <li key={j.id}>
+                  <JobCard job={j}
+                    saved={savedIds.includes(j.id)}
+                    onSave={() => onSave(j.id)}
+                    onOpen={() => onOpenJob(j)} />
+                </li>
+              )}
+            </ul>
+          }
         </div>
       </div>
-    </div>
-  );
+    </div>);
 }
 
-// ============ Profile Page (Skills/Experience editor) ============
+// ============ Profile Page ============
 function ProfilePage({ user, profile, onSave, onNav }) {
+  const firstName = (user.name || '').split(' ')[0] || 'You';
   return (
-    <div className="col gap-24">
-      <div className="topbar">
+    <div className="profile-edit">
+      <header className="page-head">
         <div className="col gap-4">
-          <div className="eyebrow">Profile</div>
-          <div className="h1" style={{fontSize: 32}}>Your skills & experience</div>
+          <div className="eyebrow row gap-6"><span className="live-dot"></span> Profile</div>
+          <h1 className="page-hello">About&nbsp;<em>{firstName}</em>.</h1>
         </div>
-        <Avatar name={user.name} />
-      </div>
+      </header>
 
-      <div style={{
-        padding: 20,
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 18,
-        display: 'flex', gap: 16, alignItems: 'center'
-      }}>
-        <Avatar name={user.name} size={56} />
-        <div className="col gap-4" style={{flex: 1}}>
-          <div className="h3">{user.name}</div>
-          <div className="muted" style={{fontSize: 13}}>{user.email}</div>
+      <section className="profile-id">
+        <div className="profile-id-main">
+          <div className="profile-id-name">{user.name}</div>
+          <div className="profile-id-email">{user.email}</div>
         </div>
-        <div className="col gap-4" style={{alignItems: 'flex-end'}}>
-          <div style={{fontSize: 12, color: 'var(--text-muted)', fontWeight: 600}}>Profile completeness</div>
-          <div className="row gap-8">
-            <div style={{width: 120, height: 8, background: 'var(--surface-2)', borderRadius: 999, overflow: 'hidden'}}>
-              <div style={{width: '78%', height: '100%', background: 'var(--accent-strong)'}}></div>
+        <div className="profile-id-meter">
+          <div className="profile-id-meter-label">Profile completeness</div>
+          <div className="profile-id-meter-row">
+            <div className="profile-id-meter-track">
+              <div className="profile-id-meter-fill" style={{ width: '78%' }}></div>
             </div>
-            <span style={{fontWeight: 700, fontSize: 13}}>78%</span>
+            <span className="profile-id-meter-pct">78%</span>
           </div>
         </div>
-      </div>
+      </section>
 
-      <OnboardingPage
-        profile={profile}
-        embedded
-        onSave={(p)=>{ onSave(p); onNav('home'); }}
-        onSkip={()=>onNav('home')}
-      />
-    </div>
-  );
+      <section className="profile-form">
+        <OnboardingPage
+          profile={profile}
+          embedded
+          onSave={(p) => { onSave(p); onNav('home'); }}
+          onSkip={() => onNav('home')} />
+      </section>
+    </div>);
 }
 
 // ============ Saved Page ============
 function SavedPage({ user, savedIds, onOpenJob, onSave }) {
-  const saved = JOBS.filter(j => savedIds.includes(j.id));
+  const saved = JOBS.filter((j) => savedIds.includes(j.id));
+  const avgMatch = saved.length ? Math.round(saved.reduce((s, j) => s + j.match, 0) / saved.length) : 0;
   return (
-    <div className="col gap-24">
-      <div className="topbar">
+    <div className="page-edit">
+      <header className="page-head">
         <div className="col gap-4">
           <div className="eyebrow">Saved</div>
-          <div className="h1" style={{fontSize: 32}}>Bookmarks</div>
+          <h1 className="page-hello">Your bookmarks.</h1>
+          {saved.length > 0 &&
+            <div className="page-subhello">
+              {saved.length} {saved.length === 1 ? 'role' : 'roles'} saved · avg. match&nbsp;
+              <strong>{avgMatch}%</strong>. Open any to apply.
+            </div>
+          }
         </div>
-        <Avatar name={user.name} />
-      </div>
+      </header>
 
-      {saved.length === 0 ? (
-        <div className="card" style={{padding: 48, textAlign: 'center'}}>
-          <div style={{
-            width: 64, height: 64, margin: '0 auto 16px',
-            borderRadius: 16, background: 'var(--accent-soft)',
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--accent-strong)'
-          }}>
-            <Icon.Bookmark width={24} height={24} />
-          </div>
-          <div className="h3" style={{marginBottom: 6}}>Nothing here yet</div>
-          <div className="muted">Click "Save" on any job and it will appear here.</div>
-        </div>
-      ) : (
-        <div className="col gap-12">
-          {saved.map(j => (
-            <JobCard key={j.id} job={j} saved
-              onSave={()=>onSave(j.id)}
-              onOpen={()=>onOpenJob(j)} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+      {saved.length === 0 ?
+        <div className="empty-state">
+          <div className="empty-state-title">Nothing here yet</div>
+          <div className="empty-state-text">Bookmark any role and it will appear here.</div>
+        </div> :
+        <ul className="job-list">
+          {saved.map((j) =>
+            <li key={j.id}>
+              <JobCard job={j} saved
+                onSave={() => onSave(j.id)}
+                onOpen={() => onOpenJob(j)} />
+            </li>
+          )}
+        </ul>
+      }
+    </div>);
 }
 
 Object.assign(window, { HomePage, SearchPage, ProfilePage, SavedPage });
