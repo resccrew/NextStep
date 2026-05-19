@@ -300,8 +300,7 @@ function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave }) {
           }
         </div>
       </div>
-    </div>
-  );
+    </div>);
 }
 
 // ============ Profile Page ============
