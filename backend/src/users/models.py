@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from jobs.models import Job
 
 class User(AbstractUser):
     EXPERIENCE_CHOICES = [
@@ -24,15 +25,13 @@ class User(AbstractUser):
         return self.username
     
 
+# users/models.py — замінити SavedVacancy
 class SavedVacancy(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_vacancies')
-    url = models.URLField()
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'url')
+        unique_together = ('user', 'job')
         ordering = ['-created_at']
-
-    def __str__(self):
-        return f"{self.user.username} - {self.title or self.url}"

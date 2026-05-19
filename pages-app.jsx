@@ -2,12 +2,16 @@
 const { useState: useStateH, useMemo: useMemoH, useEffect: useEffectH } = React;
 
 // ============ Home / Recommendations ============
-function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
+function HomePage({ user, profile, jobs = [], onOpenJob, savedIds, onSave, onNav }) {
   const recommended = useMemoH(() => {
-    return [...JOBS].sort((a,b)=>b.match-a.match).slice(0, 5);
-  }, []);
+    return [...jobs].sort((a,b)=>b.match-a.match).slice(0, 5);
+  }, [jobs]);
+  
   const topMatch = recommended[0];
-  const matchAvg = Math.round(recommended.reduce((s,j)=>s+j.match,0) / recommended.length);
+  // БЕЗПЕЧНА ПЕРЕВІРКА: щоб не було ділення на 0 (NaN)
+  const matchAvg = recommended.length > 0 
+    ? Math.round(recommended.reduce((s,j)=>s+j.match,0) / recommended.length) 
+    : 0;
 
   const firstName = (user.name || '').split(' ')[0] || 'Anna';
 
@@ -29,14 +33,15 @@ function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
         <div className="row" style={{justifyContent: 'space-between', alignItems: 'flex-start', gap: 24, position: 'relative'}}>
           <div className="col gap-8" style={{maxWidth: 460}}>
             <div className="eyebrow">Top match</div>
-            <div className="h2">{topMatch.title}</div>
-            <div className="muted">{topMatch.company} · {topMatch.location} · {topMatch.salary}</div>
+            {/* БЕЗПЕЧНА ПЕРЕВІРКА: додано знаки питання (?.) */}
+            <div className="h2">{topMatch?.title || 'Завантаження...'}</div>
+            <div className="muted">{topMatch ? `${topMatch.company} · ${topMatch.location} · ${topMatch.salary}` : 'Шукаємо вакансії...'}</div>
             <div style={{fontSize: 14, lineHeight: 1.5, marginTop: 6}}>
               AI thinks this job matches your profile
-              by <strong>{topMatch.match}%</strong>. Apply with a tailored resume in one click.
+              by <strong>{topMatch?.match || 0}%</strong>. Apply with a tailored resume in one click.
             </div>
             <div className="row gap-10" style={{marginTop: 14}}>
-              <button className="btn btn-primary" onClick={()=>onOpenJob(topMatch)}>
+              <button className="btn btn-primary" onClick={() => topMatch && onOpenJob(topMatch)} disabled={!topMatch}>
                 View <Icon.Arrow />
               </button>
               <button className="btn btn-ghost" onClick={()=>onNav('search')}>
@@ -44,14 +49,14 @@ function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
               </button>
             </div>
           </div>
-          <MatchMeter pct={topMatch.match} size={120} stroke={8} />
+          <MatchMeter pct={topMatch?.match || 0} size={120} stroke={8} />
         </div>
       </div>
 
       <div className="row gap-16">
         <div className="stat" style={{flex: 1}}>
           <div className="l">New today</div>
-          <div className="v">{recommended.length + 3}</div>
+          <div className="v">{recommended.length > 0 ? recommended.length + 3 : 0}</div>
         </div>
         <div className="stat" style={{flex: 1}}>
           <div className="l">Avg. match</div>
@@ -79,12 +84,17 @@ function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
         </div>
 
         <div className="col gap-12">
-          {recommended.map(j => (
-            <JobCard key={j.id} job={j}
-              saved={savedIds.includes(j.id)}
-              onSave={()=>onSave(j.id)}
-              onOpen={()=>onOpenJob(j)} />
-          ))}
+          {/* БЕЗПЕЧНА ПЕРЕВІРКА: показуємо текст, якщо масив порожній */}
+          {recommended.length > 0 ? (
+            recommended.map(j => (
+              <JobCard key={j.id} job={j}
+                saved={savedIds.includes(j.id)}
+                onSave={()=>onSave(j.id)}
+                onOpen={()=>onOpenJob(j)} />
+            ))
+          ) : (
+             <div className="muted" style={{padding: '20px 0'}}>Вакансії ще завантажуються або їх немає в базі...</div>
+          )}
         </div>
       </div>
 
@@ -106,7 +116,7 @@ function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
 }
 
 // ============ Search Page ============
-function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
+function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave }) {
   const [query, setQuery] = useStateH('');
   const [minMatch, setMinMatch] = useStateH(0);
   const [activeTags, setActiveTags] = useStateH([]);
@@ -115,14 +125,14 @@ function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
 
   const allTags = useMemoH(() => {
     const t = new Set();
-    JOBS.forEach(j => j.tags.forEach(x => t.add(x)));
+    jobs.forEach(j => j.tags.forEach(x => t.add(x)));
     return [...t];
-  }, []);
+  }, [jobs]);
 
   const toggleTag = (t) => setActiveTags(prev => prev.includes(t) ? prev.filter(x=>x!==t) : [...prev, t]);
 
   const results = useMemoH(() => {
-    let r = [...JOBS];
+    let r = [...jobs];
     if (query.trim()) {
       const q = query.toLowerCase();
       r = r.filter(j =>
@@ -140,7 +150,7 @@ function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
     r = r.filter(j => j.match >= minMatch);
     r.sort((a,b)=>b.match-a.match);
     return r;
-  }, [query, activeTags, minMatch, format]);
+  }, [query, activeTags, minMatch, format, jobs]);
 
   return (
     <div className="col gap-24">
@@ -306,8 +316,8 @@ function ProfilePage({ user, profile, onSave, onNav }) {
 }
 
 // ============ Saved Page ============
-function SavedPage({ user, savedIds, onOpenJob, onSave }) {
-  const saved = JOBS.filter(j => savedIds.includes(j.id));
+function SavedPage({ user, jobs = [], savedIds, onOpenJob, onSave }) {
+  const saved = jobs.filter(j => savedIds.includes(j.id));
   return (
     <div className="col gap-24">
       <div className="topbar">

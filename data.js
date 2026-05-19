@@ -66,56 +66,51 @@ const SKILL_GROUPS = [
 
 const JOBS = [
   {
-    "title": "Privacy Data Analyst with German",
+    "title": "Inżynier (k/m) Wsparcia Sprzedaży",
     "company": "Unknown",
     "logo": "P",
-    "location": "Kraków · On-site",
+    "location": "Sękocin NowyMapa · On-site",
     "salary": "7 000 - 8 000 złbrutto/mies.",
     "type": "pełny etat",
     "posted": "2 godz. temu",
-    "match": 90,
+    "match": 71,
     "tags": [
-      "Go",
-      "AWS",
-      "AI",
-      "iOS"
+      "Go"
     ],
     "why": "Matched from praca.pl IT listings",
     "featured": true,
     "description": "View full job description on praca.pl.",
-    "url": "https://www.praca.pl/privacy-data-analyst-with-german_10988512.html#c412c29abfa643336d03a767190e0526",
+    "url": "https://www.praca.pl/inzynier-k-m-wsparcia-sprzedazy_10926460.html#5da2f2f1604ea9ab554373d03ea7b71c",
     "id": 1
   },
   {
-    "title": "Remote Content Analyst with Spanish​​",
+    "title": "Inżynier / Inżynierka budowy",
     "company": "Unknown",
     "logo": "P",
-    "location": "Kraków · Remote",
-    "salary": "41,00 złbrutto/godz.",
-    "type": "Full-time",
+    "location": "Dąbrowa Górnicza",
+    "salary": "Negotiable",
+    "type": "pełny etat",
     "posted": "2 godz. temu",
     "match": 82,
     "tags": [
       "Go",
-      "AWS",
-      "REST",
-      "AI"
+      "AWS"
     ],
     "why": "Matched from praca.pl IT listings",
     "featured": false,
     "description": "View full job description on praca.pl.",
-    "url": "https://www.praca.pl/remote-content-analyst-with-spanish_10988569.html#c412c29abfa643336d03a767190e0526",
+    "url": "https://www.praca.pl/inzynier-inzynierka-budowy_10967431.html#5da2f2f1604ea9ab554373d03ea7b71c",
     "id": 2
   },
   {
-    "title": "Inżynier / Inżynierka Budowy (branża drogowa) (k/m)",
+    "title": "Inżynier Struktur Lotniczych (K/M)",
     "company": "Unknown",
     "logo": "P",
-    "location": "Łódź · On-site",
+    "location": "Rzeszów · On-site",
     "salary": "Negotiable",
     "type": "pełny etat",
-    "posted": "1 godz. temu",
-    "match": 76,
+    "posted": "2 godz. temu",
+    "match": 92,
     "tags": [
       "Go",
       "AI"
@@ -123,8 +118,84 @@ const JOBS = [
     "why": "Matched from praca.pl IT listings",
     "featured": false,
     "description": "View full job description on praca.pl.",
-    "url": "https://www.praca.pl/inzynier-inzynierka-budowy-branza-drogowa-k-m_11003059.html#c412c29abfa643336d03a767190e0526",
+    "url": "https://www.praca.pl/inzynier-struktur-lotniczych-k-m_10989841.html#c412c29abfa643336d03a767190e0526",
     "id": 3
+  },
+  {
+    "title": "Starszy inżynier mechanik / Starsza inżynierka mechaniczka",
+    "company": "Unknown",
+    "logo": "P",
+    "location": "Poznań · Remote",
+    "salary": "Negotiable",
+    "type": "Full-time",
+    "posted": "1 godz. temu",
+    "match": 75,
+    "tags": [
+      "Go",
+      "AI"
+    ],
+    "why": "Matched from praca.pl IT listings",
+    "featured": false,
+    "description": "View full job description on praca.pl.",
+    "url": "https://www.praca.pl/starszy-inzynier-mechanik-starsza-inzynierka-mechaniczka_11005888.html#c412c29abfa643336d03a767190e0526",
+    "id": 4
+  },
+  {
+    "title": "Specjalista / Specjalistka ds. Analityki Laboratoryjnej",
+    "company": "Unknown",
+    "logo": "P",
+    "location": "Starogard GdańskiMapa · On-site",
+    "salary": "Negotiable",
+    "type": "pełny etat",
+    "posted": "1 godz. temu",
+    "match": 85,
+    "tags": [
+      "Go"
+    ],
+    "why": "Matched from praca.pl IT listings",
+    "featured": false,
+    "description": "View full job description on praca.pl.",
+    "url": "https://www.praca.pl/specjalista-specjalistka-ds-analityki-laboratoryjnej_11008231.html#d2e3354bf1e7185d0c59dc1feea5fe5b",
+    "id": 5
+  },
+  {
+    "title": "Inżynier / Inżynierka ds. Projektów i Systemów Pompowych",
+    "company": "Unknown",
+    "logo": "P",
+    "location": "Adamów (pow. grodziski, gm. Grodzisk Mazowiecki), A2 Warsaw ParkMapa · On-site",
+    "salary": "11 000 - 13 000 zł/ mies. (w zal. od umowy)",
+    "type": "pełny etat",
+    "posted": "1 godz. temu",
+    "match": 75,
+    "tags": [
+      "Go",
+      "AWS",
+      "AI"
+    ],
+    "why": "Matched from praca.pl IT listings",
+    "featured": false,
+    "description": "View full job description on praca.pl.",
+    "url": "https://www.praca.pl/inzynier-inzynierka-ds-projektow-i-systemow-pompowych_11008453.html#d2e3354bf1e7185d0c59dc1feea5fe5b",
+    "id": 6
+  },
+  {
+    "title": "Młodszy diagnosta weterynaryjny – analityka ogólna (k/m)",
+    "company": "Unknown",
+    "logo": "P",
+    "location": "Warszawa, al. Krakowska 110 · On-site",
+    "salary": "Negotiable",
+    "type": "pełny etat",
+    "posted": "3 godz. temu",
+    "match": 78,
+    "tags": [
+      "Go",
+      "AI"
+    ],
+    "why": "Matched from praca.pl IT listings",
+    "featured": false,
+    "description": "View full job description on praca.pl.",
+    "url": "https://www.praca.pl/mlodszy-diagnosta-weterynaryjny-analityka-ogolna-k-m_10926217.html#d2e3354bf1e7185d0c59dc1feea5fe5b",
+    "id": 7
   }
 ];
 
