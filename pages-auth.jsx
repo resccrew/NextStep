@@ -1,33 +1,9 @@
-/*---------------------------------------New version --------------------------------------------------------*/
-
 /* global React, SKILL_GROUPS, JOBS, Icon, Logo, MatchMeter, Avatar, Chip, JobCard */
 const { useState: useStateP, useMemo: useMemoP, useEffect: useEffectP } = React;
 
 // ============ Login Page ============
-const STALKS = (() => {
-  const arr = [];
-  const N = 5;
-  const configs = [
-    { y0:1200, c1x: 200, c1y:1040, c2x: 700, c2y: 560, x1: 1100, y1: 700 },
-    { y0:1080, c1x: 320, c1y: 860, c2x: 820, c2y: 380, x1: 1300, y1: 540 },
-    { y0: 940, c1x: 440, c1y: 660, c2x: 940, c2y: 200, x1: 1480, y1: 380 },
-    { y0: 780, c1x: 560, c1y: 480, c2x:1060, c2y:  40, x1: 1560, y1: 220 },
-    { y0: 600, c1x: 680, c1y: 300, c2x:1180, c2y:-140, x1: 1640, y1:  60 },
-    { y0: 420, c1x: 800, c1y: 120, c2x:1300, c2y:-320, x1: 1720, y1:-100 },
-  ];
-  configs.forEach((c, i) => {
-    const x0 = -80 + i * 20;
-    const d = `M ${x0} ${c.y0} C ${c.c1x} ${c.c1y}, ${c.c2x} ${c.c2y}, ${c.x1} ${c.y1}`;
-    const width = 22 - i * 2.5;
-    const opacity = 0.55 + (i % 3) * 0.08;
-    const stroke = i % 2 === 0 ? '#A8F0AE' : '#7FE38B';
-    const len = 2200 + i * 100;
-    const delay = (i * 0.12).toFixed(2);
-    const flyDelay = ((N - 1 - i) * 0.08).toFixed(2);
-    arr.push({ d, width, opacity, stroke, len, delay, flyDelay, i });
-  });
-  return arr;
-})();
+// GoogleGlyph більше не потрібен, оскільки Google сам рендерить свою іконку, 
+// але ми можемо залишити його, якщо він знадобиться деінде.
 
 function LoginPage({ onLogin }) {
   const [mode, setMode] = useStateP('signin');
@@ -41,17 +17,18 @@ function LoginPage({ onLogin }) {
   const GOOGLE_CLIENT_ID = "80208761057-im8lepibi8b7doe94q4t02hat5kbkr0p.apps.googleusercontent.com";
 
   useEffectP(() => {
-    if (window.google) {
-      window.google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleGoogleResponse
-      });
-
-      window.google.accounts.id.renderButton(
-        document.getElementById("google-btn-div"),
-        { theme: "outline", size: "large", width: "100%", shape: "rectangular" }
-      );
-    }
+    if (!window.google) return;
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleResponse
+    });
+    
+    // ВАЖЛИВО: Повертаємо рендер офіційної кнопки Google. 
+    // Це єдиний надійний спосіб отримати токен без блокувань браузером.
+    window.google.accounts.id.renderButton(
+      document.getElementById("google-btn-div"),
+      { theme: "outline", size: "large", width: 400, shape: "rectangular" } // width налаштовано під нову картку
+    );
   }, []);
 
   const handleGoogleResponse = async (response) => {
@@ -77,7 +54,7 @@ function LoginPage({ onLogin }) {
       setFlying(true);
       setTimeout(() => {
         onLogin(data.user);
-      }, 1700);
+      }, 700);
 
     } catch (err) {
       setError(err.message);
@@ -102,9 +79,7 @@ function LoginPage({ onLogin }) {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
@@ -119,99 +94,92 @@ function LoginPage({ onLogin }) {
       localStorage.setItem('refresh_token', data.refresh);
 
       setFlying(true);
-
-      setTimeout(() => {
-        onLogin(data.user);
-      }, 1700);
+      setTimeout(() => { onLogin(data.user); }, 700);
 
     } catch (err) {
       setError(err.message);
     }
   };
 
+  const switchMode = () => {
+    setMode(mode === 'signin' ? 'signup' : 'signin');
+    setError('');
+  };
+
   return (
-    <div className={`auth-wrap ${flying ? 'is-flying' : ''}`}>
-      <div className="auth-bg" aria-hidden="true">
-        <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice">
-          <g>
-            {STALKS.map(s => (
-              <path key={s.i} className="stalk" d={s.d}
-                stroke={s.stroke} strokeWidth={s.width} opacity={s.opacity}
-                style={{ '--len': s.len, '--delay': `${s.delay}s`, '--fly-delay': `${s.flyDelay}s` }} />
-            ))}
-          </g>
-        </svg>
-      </div>
-
-      <div className="auth-top">
-        <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
-          <img src="assets/logo.png" alt="" width={28} height={28} style={{borderRadius: 7, display:'block'}} />
-          <div style={{fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em'}}>NextStep</div>
+    <div className={`auth2 ${flying ? 'is-flying' : ''}`}>
+      <header className="auth2-top">
+        <div className="auth2-brand">
+          <img src="assets/logo.svg" alt="" height={26} style={{ height: 26, width: 'auto', display: 'block' }} />
+          <span>NextStep</span>
         </div>
-        <a href="#" style={{fontSize: 13, color: 'var(--text-muted)', fontWeight: 500}}>Need help?</a>
-      </div>
+        <a href="#" className="auth2-help">Need help?</a>
+      </header>
 
-      <div className="auth-stage">
-        <div className="auth-card">
-          <img src="assets/logo.png" alt="NextStep" className="auth-logo-hero" />
+      <main className="auth2-main">
+        <h1 className="auth2-headline">
+          Find your<br/>next move.
+        </h1>
+        <p className="auth2-sub">AI-matched jobs, sorted by what fits you.</p>
 
-          <div className="col gap-6" style={{textAlign: 'center'}}>
-            <div className="h2" style={{fontSize: 26}}>
-              {mode === 'signin' ? 'Welcome back' : 'Create an account'}
-            </div>
-            <div className="muted" style={{fontSize: 14}}>
-              {mode === 'signin'
-                ? 'Sign in to see your fresh picks.'
-                : 'Takes a couple of minutes.'}
-            </div>
-          </div>
+        <div className="auth2-card">
+          {/* Контейнер для офіційної кнопки Google замість кастомної */}
+          <div 
+            id="google-btn-div" 
+            style={{ width: '100%', display: 'flex', justifyContent: 'center', minHeight: '40px' }}
+          ></div>
 
-          <div className="seg" style={{alignSelf: 'center'}}>
-            <button className={mode==='signin' ? 'is-on' : ''} onClick={()=>{setMode('signin'); setError('');}}>Sign in</button>
-            <button className={mode==='signup' ? 'is-on' : ''} onClick={()=>{setMode('signup'); setError('');}}>Sign up</button>
-          </div>
+          <div className="auth2-or" style={{ marginTop: 12 }}><span>OR</span></div>
 
-          <form className="col gap-14" onSubmit={submit}>
-            {error && (
-              <div style={{ color: '#EA4335', fontSize: '14px', textAlign: 'center', backgroundColor: '#FCE8E6', padding: '8px', borderRadius: '8px' }}>
-                {error}
-              </div>
-            )}
-
+          <form className="auth2-form" onSubmit={submit}>
             {mode === 'signup' && (
-              <div className="field">
-                <label className="field-label">Your name (Username)</label>
-                <input className="input" placeholder="Anna Smith" value={name} onChange={e=>setName(e.target.value)} required />
-              </div>
+              <input
+                className="auth2-input"
+                placeholder="Your name"
+                value={name}
+                onChange={e=>setName(e.target.value)}
+                required
+              />
             )}
+            <input
+              className="auth2-input"
+              type="text"
+              placeholder="Enter your email"
+              value={email}
+              onChange={e=>setEmail(e.target.value)}
+              required
+            />
+            <input
+              className="auth2-input"
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={e=>setPassword(e.target.value)}
+              required
+            />
 
-            <div className="field">
-              <label className="field-label">Email / Username</label>
-              <input className="input" type="text" placeholder="you@example.com" value={email} onChange={e=>setEmail(e.target.value)} required />
-            </div>
+            {error && <div className="auth2-error" style={{ color: '#EA4335', fontSize: '14px', textAlign: 'center', backgroundColor: '#FCE8E6', padding: '8px', borderRadius: '8px', marginBottom: '12px' }}>{error}</div>}
 
-            <div className="field">
-              <label className="field-label">Password</label>
-              <input className="input" type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)} required />
-
-              {mode === 'signin' && (
-                <div className="row" style={{justifyContent: 'flex-end', marginTop: 4}}>
-                  <a href="#" style={{fontSize: 12, color: 'var(--text-muted)', fontWeight: 500}}>Forgot password?</a>
-                </div>
-              )}
-            </div>
-
-            <button type="submit" className="btn btn-primary btn-lg" style={{width: '100%', marginTop: 4}}>
-              {mode === 'signin' ? 'Sign in' : 'Create account'} <Icon.Arrow />
+            <button type="submit" className="auth2-cta">
+              {mode === 'signin' ? 'Continue with email' : 'Create account'}
             </button>
-
-            <div className="divider">or</div>
-            <div id="google-btn-div" style={{width: '100%'}}></div>
           </form>
-        </div>
-      </div>
 
-      <div className="auth-foot">© 2026 NextStep · MVP</div>
+          <p className="auth2-fineprint">
+            By continuing, you acknowledge NextStep's <a href="#">Privacy Policy</a>.
+          </p>
+        </div>
+
+        <button type="button" className="auth2-switch" onClick={switchMode}>
+          {mode === 'signin' ? (
+            <>New to NextStep? <strong>Create an account</strong></>
+          ) : (
+            <>Already have an account? <strong>Sign in</strong></>
+          )}
+        </button>
+      </main>
+
+      <footer className="auth2-foot">© 2026 NextStep</footer>
     </div>
   );
 }
@@ -292,9 +260,9 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
 
       <div className="steps" style={{marginBottom: 20}}>
         <span className={`pill ${step>=1 ? 'is-on' : ''}`}>1 · About you</span>
-        <span style={{width: 16, height: 1, background: 'var(--border)'}}></span>
+        <span style={{width: 16, height: 1, background: 'rgba(15,67,23,0.18)'}}></span>
         <span className={`pill ${step>=2 ? 'is-on' : ''}`}>2 · Skills</span>
-        <span style={{width: 16, height: 1, background: 'var(--border)'}}></span>
+        <span style={{width: 16, height: 1, background: 'rgba(15,67,23,0.18)'}}></span>
         <span className={`pill ${step>=3 ? 'is-on' : ''}`}>3 · Preferences</span>
       </div>
 
@@ -358,7 +326,8 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
 
           <div style={{
             padding: 20,
-            background: 'var(--surface)',
+            background: 'rgba(255,255,255,0.45)',
+            border: '1px solid rgba(15,67,23,0.10)',
             borderRadius: 18,
             minHeight: 200
           }}>
@@ -428,13 +397,14 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
 
           <div style={{
             padding: 20, borderRadius: 18,
-            background: 'var(--accent-soft)',
+            background: 'rgba(255,255,255,0.55)',
+            border: '1px solid rgba(15,67,23,0.12)',
             display: 'flex', gap: 14, alignItems: 'flex-start'
           }}>
-            <span style={{color: 'var(--accent-strong)', marginTop: 2}}><Icon.AI /></span>
+            <span style={{color: 'var(--text)', marginTop: 2}}><Icon.AI /></span>
             <div className="col gap-4">
-              <div style={{fontWeight: 700, fontSize: 14, color: 'var(--accent-ink)'}}>Ready to match</div>
-              <div style={{fontSize: 13, color: 'var(--accent-ink)', opacity: 0.85, lineHeight: 1.5}}>
+              <div style={{fontWeight: 700, fontSize: 14, color: 'var(--text)'}}>Ready to match</div>
+              <div style={{fontSize: 13, color: 'rgba(15,67,23,0.7)', lineHeight: 1.5}}>
                 We'll find {Math.max(8, skills.length * 4)} jobs with over 70% relevance.
                 Updated daily.
               </div>
