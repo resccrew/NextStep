@@ -2,16 +2,8 @@
 const { useState: useStateP, useMemo: useMemoP, useEffect: useEffectP } = React;
 
 // ============ Login Page ============
-function GoogleGlyph() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-      <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.49h4.84a4.14 4.14 0 01-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.88 2.69-6.63z"/>
-      <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26c-.81.54-1.83.86-3.05.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33A9 9 0 009 18z"/>
-      <path fill="#FBBC05" d="M3.97 10.71A5.41 5.41 0 013.68 9c0-.59.1-1.17.29-1.71V4.96H.96A9 9 0 000 9c0 1.45.35 2.83.96 4.04l3.01-2.33z"/>
-      <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 00.96 4.96L3.97 7.29C4.68 5.16 6.66 3.58 9 3.58z"/>
-    </svg>
-  );
-}
+// GoogleGlyph більше не потрібен, оскільки Google сам рендерить свою іконку, 
+// але ми можемо залишити його, якщо він знадобиться деінде.
 
 function LoginPage({ onLogin }) {
   const [mode, setMode] = useStateP('signin');
@@ -30,15 +22,14 @@ function LoginPage({ onLogin }) {
       client_id: GOOGLE_CLIENT_ID,
       callback: handleGoogleResponse
     });
+    
+    // ВАЖЛИВО: Повертаємо рендер офіційної кнопки Google. 
+    // Це єдиний надійний спосіб отримати токен без блокувань браузером.
+    window.google.accounts.id.renderButton(
+      document.getElementById("google-btn-div"),
+      { theme: "outline", size: "large", width: 400, shape: "rectangular" } // width налаштовано під нову картку
+    );
   }, []);
-
-  const triggerGoogle = () => {
-    if (!window.google) {
-      setError('Google sign-in is loading...');
-      return;
-    }
-    window.google.accounts.id.prompt();
-  };
 
   const handleGoogleResponse = async (response) => {
     if (flying) return;
@@ -140,12 +131,13 @@ function LoginPage({ onLogin }) {
         <p className="auth2-sub">AI-matched jobs, sorted by what fits you.</p>
 
         <div className="auth2-card">
-          <button type="button" className="auth2-google" onClick={triggerGoogle}>
-            <GoogleGlyph />
-            <span>Continue with Google</span>
-          </button>
+          {/* Контейнер для офіційної кнопки Google замість кастомної */}
+          <div 
+            id="google-btn-div" 
+            style={{ width: '100%', display: 'flex', justifyContent: 'center', minHeight: '40px' }}
+          ></div>
 
-          <div className="auth2-or"><span>OR</span></div>
+          <div className="auth2-or" style={{ marginTop: 12 }}><span>OR</span></div>
 
           <form className="auth2-form" onSubmit={submit}>
             {mode === 'signup' && (
@@ -174,7 +166,7 @@ function LoginPage({ onLogin }) {
               required
             />
 
-            {error && <div className="auth2-error">{error}</div>}
+            {error && <div className="auth2-error" style={{ color: '#EA4335', fontSize: '14px', textAlign: 'center', backgroundColor: '#FCE8E6', padding: '8px', borderRadius: '8px', marginBottom: '12px' }}>{error}</div>}
 
             <button type="submit" className="auth2-cta">
               {mode === 'signin' ? 'Continue with email' : 'Create account'}
@@ -429,10 +421,12 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
 
           <div className="row" style={{justifyContent: 'space-between', marginTop: 12}}>
             <button className="btn btn-ghost" onClick={()=>setStep(2)}>Back</button>
-            <button className="btn btn-mint btn-lg" onClick={()=>onSave({
-              role, experience: exp, skills, formats, salary, onboardingDone: true
-            })}>
-              Show jobs <Icon.Arrow />
+            <button 
+              className="btn btn-mint btn-lg" 
+              onClick={handleSaveData} 
+              disabled={isSaving}
+            >
+              {isSaving ? 'Saving...' : 'Show jobs'} <Icon.Arrow />
             </button>
           </div>
         </div>

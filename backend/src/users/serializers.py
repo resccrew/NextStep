@@ -20,7 +20,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class SavedVacancySerializer(serializers.ModelSerializer):
     class Meta:
         model = SavedVacancy
-        fields = ['id', 'url', 'title', 'created_at']
+        fields = ['id', 'job', 'title', 'created_at']
         read_only_fields = ['id', 'created_at']
 
 class OnboardingSerializer(serializers.ModelSerializer):

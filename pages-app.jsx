@@ -1,17 +1,22 @@
-/* global React, JOBS, Icon, Logo, MatchMeter, Avatar, Chip, JobCard, EXP_LEVELS */
+/* global React, Icon, Logo, MatchMeter, Avatar, Chip, JobCard, EXP_LEVELS */
 const { useState: useStateH, useMemo: useMemoH, useEffect: useEffectH } = React;
 
 // ============ Home / Recommendations ============
-function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
+function HomePage({ user, profile, jobs = [], onOpenJob, savedIds, onSave, onNav }) {
   const recommended = useMemoH(() => {
-    return [...JOBS].sort((a, b) => b.match - a.match).slice(0, 5);
-  }, []);
+    return [...jobs].sort((a, b) => b.match - a.match).slice(0, 5);
+  }, [jobs]);
+  
   const topMatch = recommended[0];
   const rest = recommended.slice(1);
 
   const firstName = (user.name || '').split(' ')[0] || 'Anna';
-  const matchAvg = Math.round(recommended.reduce((s, j) => s + j.match, 0) / recommended.length);
-  const newToday = recommended.length + 3;
+  
+  // Безпечні перевірки для розрахунків
+  const matchAvg = recommended.length > 0 
+    ? Math.round(recommended.reduce((s, j) => s + j.match, 0) / recommended.length) 
+    : 0;
+  const newToday = recommended.length > 0 ? recommended.length + 3 : 0;
   const applications = 4;
 
   const completeness = useMemoH(() => {
@@ -31,8 +36,7 @@ function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
           <div className="eyebrow row gap-6"><span className="live-dot"></span> Today · {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
           <h1 className="home-hello">Hi&nbsp;<em>{firstName}</em>.</h1>
           <div className="home-subhello">
-            {newToday} new roles since yesterday. Top match is&nbsp;
-            <strong>{topMatch.match}%</strong>&nbsp;— start there.
+            {newToday} new roles since yesterday. {topMatch ? `Top match is ${topMatch.match}% — start there.` : 'Looking for the best matches...'}
           </div>
         </div>
       </header>
@@ -56,33 +60,39 @@ function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
         </button>
       </section>
 
-      <section className="home-feature" onClick={() => onOpenJob(topMatch)}>
-        <div className="home-feature-meta">
-          <div className="eyebrow row gap-8">
-            <span className="dot-mint" aria-hidden="true"></span>
-            Top match for you
+      {topMatch ? (
+        <section className="home-feature" onClick={() => onOpenJob(topMatch)}>
+          <div className="home-feature-meta">
+            <div className="eyebrow row gap-8">
+              <span className="dot-mint" aria-hidden="true"></span>
+              Top match for you
+            </div>
+            <div className="home-feature-pct">
+              <MatchMeter pct={topMatch.match} size={56} stroke={4} />
+            </div>
           </div>
-          <div className="home-feature-pct">
-            <MatchMeter pct={topMatch.match} size={56} stroke={4} />
+          <h2 className="home-feature-title">{topMatch.title}</h2>
+          <div className="home-feature-sub muted">
+            {topMatch.company} · {topMatch.location} · {topMatch.salary}
           </div>
-        </div>
-        <h2 className="home-feature-title">{topMatch.title}</h2>
-        <div className="home-feature-sub muted">
-          {topMatch.company} · {topMatch.location} · {topMatch.salary}
-        </div>
-        <p className="home-feature-why">
-          <span className="eyebrow" style={{display:'inline', marginRight: 6}}>Why</span>
-          {topMatch.why}. Tags overlap: {topMatch.tags.slice(0, 3).join(', ')}.
-        </p>
-        <div className="home-feature-row">
-          <button className="btn btn-primary btn-lg" onClick={(e) => { e.stopPropagation(); onOpenJob(topMatch); }}>
-            View role <Icon.Arrow />
-          </button>
-          <button className="btn btn-ghost" onClick={(e) => { e.stopPropagation(); onSave(topMatch.id); }}>
-            <Icon.Bookmark /> {savedIds.includes(topMatch.id) ? 'Saved' : 'Save for later'}
-          </button>
-        </div>
-      </section>
+          <p className="home-feature-why">
+            <span className="eyebrow" style={{display:'inline', marginRight: 6}}>Why</span>
+            {topMatch.why}. Tags overlap: {topMatch.tags.slice(0, 3).join(', ')}.
+          </p>
+          <div className="home-feature-row">
+            <button className="btn btn-primary btn-lg" onClick={(e) => { e.stopPropagation(); onOpenJob(topMatch); }}>
+              View role <Icon.Arrow />
+            </button>
+            <button className="btn btn-ghost" onClick={(e) => { e.stopPropagation(); onSave(topMatch.id); }}>
+              <Icon.Bookmark /> {savedIds.includes(topMatch.id) ? 'Saved' : 'Save for later'}
+            </button>
+          </div>
+        </section>
+      ) : (
+        <section className="home-feature" style={{textAlign: 'center', padding: '40px 20px'}}>
+          <div className="muted">Вакансії ще завантажуються або їх немає в базі...</div>
+        </section>
+      )}
 
       <section className="home-list">
         <header className="home-list-head">
@@ -94,17 +104,21 @@ function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
             See all <Icon.Arrow />
           </button>
         </header>
-        <ul className="home-list-rows">
-          {rest.map((j) =>
-            <li key={j.id}>
-              <JobCard
-                job={j}
-                saved={savedIds.includes(j.id)}
-                onSave={() => onSave(j.id)}
-                onOpen={() => onOpenJob(j)} />
-            </li>
-          )}
-        </ul>
+        {rest.length > 0 ? (
+          <ul className="home-list-rows">
+            {rest.map((j) =>
+              <li key={j.id}>
+                <JobCard
+                  job={j}
+                  saved={savedIds.includes(j.id)}
+                  onSave={() => onSave(j.id)}
+                  onOpen={() => onOpenJob(j)} />
+              </li>
+            )}
+          </ul>
+        ) : (
+          <div className="muted" style={{padding: '20px 0'}}>Loading more jobs...</div>
+        )}
       </section>
 
       {completeness < 100 &&
@@ -126,26 +140,28 @@ function HomePage({ user, profile, onOpenJob, savedIds, onSave, onNav }) {
           </div>
         </section>
       }
-    </div>);
+    </div>
+  );
 }
 
 // ============ Search Page ============
-function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
+function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave }) {
   const [query, setQuery] = useStateH('');
   const [minMatch, setMinMatch] = useStateH(0);
   const [activeTags, setActiveTags] = useStateH([]);
   const [format, setFormat] = useStateH('all');
+  const [useAI, setUseAI] = useStateH(true); // Відновлено з вашого старого коду
 
   const allTags = useMemoH(() => {
     const t = new Set();
-    JOBS.forEach((j) => j.tags.forEach((x) => t.add(x)));
+    jobs.forEach((j) => j.tags.forEach((x) => t.add(x)));
     return [...t];
-  }, []);
+  }, [jobs]);
 
   const toggleTag = (t) => setActiveTags((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
 
   const results = useMemoH(() => {
-    let r = [...JOBS];
+    let r = [...jobs];
     if (query.trim()) {
       const q = query.toLowerCase();
       r = r.filter((j) =>
@@ -163,7 +179,7 @@ function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
     r = r.filter((j) => j.match >= minMatch);
     r.sort((a, b) => b.match - a.match);
     return r;
-  }, [query, activeTags, minMatch, format]);
+  }, [query, activeTags, minMatch, format, jobs]);
 
   return (
     <div className="page-edit">
@@ -172,7 +188,7 @@ function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
           <div className="eyebrow">Search</div>
           <h1 className="page-hello">Find a role.</h1>
           <div className="page-subhello">
-            {JOBS.length} roles indexed. Try a skill, company, or keyword — we'll surface the closest
+            {jobs.length} roles indexed. Try a skill, company, or keyword — we'll surface the closest
             matches first.
           </div>
         </div>
@@ -187,13 +203,23 @@ function SearchPage({ user, profile, onOpenJob, savedIds, onSave }) {
             <button type="button" className="search-clear" onClick={() => setQuery('')} aria-label="Clear"><Icon.X /></button>
           )}
         </div>
-        <div className="search-quickchips">
-          {profile.skills && profile.skills.slice(0, 5).map((s) =>
-            <Chip key={s} on={activeTags.includes(s)} onClick={() => toggleTag(s)}>{s}</Chip>
-          )}
-          {(!profile.skills || profile.skills.length === 0) && allTags.slice(0, 5).map((s) =>
-            <Chip key={s} on={activeTags.includes(s)} onClick={() => toggleTag(s)}>{s}</Chip>
-          )}
+        <div className="row" style={{justifyContent: 'space-between', alignItems: 'center', marginTop: 12, flexWrap: 'wrap', gap: 12}}>
+          <div className="search-quickchips" style={{marginTop: 0}}>
+            {profile.skills && profile.skills.slice(0, 5).map((s) =>
+              <Chip key={s} on={activeTags.includes(s)} onClick={() => toggleTag(s)}>{s}</Chip>
+            )}
+            {(!profile.skills || profile.skills.length === 0) && allTags.slice(0, 5).map((s) =>
+              <Chip key={s} on={activeTags.includes(s)} onClick={() => toggleTag(s)}>{s}</Chip>
+            )}
+          </div>
+          
+          <label className="row gap-8" style={{fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', userSelect: 'none'}}>
+            <input type="checkbox" checked={useAI} onChange={e=>setUseAI(e.target.checked)}
+              style={{accentColor: 'var(--accent-strong)'}} />
+            <span style={{display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--accent-strong)'}}>
+              <Icon.AI /> AI semantic search
+            </span>
+          </label>
         </div>
       </div>
 
@@ -312,13 +338,15 @@ function ProfilePage({ user, profile, onSave, onNav }) {
           onSave={(p) => { onSave(p); onNav('home'); }}
           onSkip={() => onNav('home')} />
       </section>
-    </div>);
+    </div>
+  );
 }
 
 // ============ Saved Page ============
-function SavedPage({ user, savedIds, onOpenJob, onSave }) {
-  const saved = JOBS.filter((j) => savedIds.includes(j.id));
+function SavedPage({ user, jobs = [], savedIds, onOpenJob, onSave }) {
+  const saved = jobs.filter((j) => savedIds.includes(j.id));
   const avgMatch = saved.length ? Math.round(saved.reduce((s, j) => s + j.match, 0) / saved.length) : 0;
+  
   return (
     <div className="page-edit">
       <header className="page-head">
@@ -349,7 +377,8 @@ function SavedPage({ user, savedIds, onOpenJob, onSave }) {
           )}
         </ul>
       }
-    </div>);
+    </div>
+  );
 }
 
 Object.assign(window, { HomePage, SearchPage, ProfilePage, SavedPage });
