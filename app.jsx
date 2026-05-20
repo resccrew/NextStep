@@ -72,6 +72,51 @@ function App() {
   // Стейт для збережених вакансій (масив об'єктів з БД)
   const [savedVacancies, setSavedVacancies] = useState([]);
 
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    setToast('Session expired. Please log in again.');
+  };
+
+  const fetchWithAuth = async (url, options = {}) => {
+    let accessToken = localStorage.getItem('access_token') || (user && (user.access_token || user.access));
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+      ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
+    };
+
+    let response = await fetch(url, { ...options, headers });
+
+    if (response.status === 401) {
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (refreshToken) {
+        try {
+          const refreshRes = await fetch('http://localhost:8000/api/token/refresh/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh: refreshToken })
+          });
+
+          if (refreshRes.ok) {
+            const data = await refreshRes.json();
+            localStorage.setItem('access_token', data.access); // Оновлюємо токен
+            headers['Authorization'] = `Bearer ${data.access}`;
+            response = await fetch(url, { ...options, headers }); // Повторюємо запит
+          } else {
+            handleLogout();
+          }
+        } catch (error) {
+          handleLogout();
+        }
+      } else {
+        handleLogout();
+      }
+    }
+    return response;
+  };
+
   // Допоміжний масив лише з ID робіт
   const savedIds = useMemo(() => savedVacancies.map(sv => sv.job), [savedVacancies]);
 
@@ -117,14 +162,9 @@ function App() {
     // 2. Завантажуємо збережені вакансії поточного користувача
     const token = localStorage.getItem('access_token') || user.access_token || user.access;
     
-    if (token) {
-      fetch('http://localhost:8000/api/users/saved-vacancies/', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch saved vacancies');
-          return res.json();
-        })
+    if (user && !user.isDevMock) {
+      fetchWithAuth('http://localhost:8000/api/users/saved-vacancies/')
+        .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch saved vacancies'))
         .then(data => {
           setSavedVacancies(data);
         })
@@ -137,6 +177,9 @@ function App() {
     // або локальний мок від DevJump
     const userData = u.user ? { ...u.user, access: u.access } : u;
     
+    if (u.access) localStorage.setItem('access_token', u.access);
+    if (u.refresh) localStorage.setItem('refresh_token', u.refresh);
+
     setUser({ ...userData, title: 'Frontend Developer' });
     
     // Якщо бекенд при логіні повертає збережені вакансії
@@ -171,9 +214,8 @@ function App() {
 
     if (existingSave) {
       // Видаляємо збережену вакансію (DELETE)
-      fetch(`http://localhost:8000/api/users/saved-vacancies/${existingSave.id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      fetchWithAuth(`http://localhost:8000/api/users/saved-vacancies/${existingSave.id}/`, {
+        method: 'DELETE'
       })
       .then(res => {
         if (res.ok) {
@@ -187,12 +229,8 @@ function App() {
     } else {
       // Додаємо збережену вакансію (POST)
       const jobData = jobs.find(j => j.id === jobId);
-      fetch(`http://localhost:8000/api/users/saved-vacancies/`, {
+      fetchWithAuth(`http://localhost:8000/api/users/saved-vacancies/`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
         body: JSON.stringify({ 
           job: jobId,
           title: jobData ? jobData.title : 'Saved Job' 

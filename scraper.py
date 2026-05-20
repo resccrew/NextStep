@@ -336,5 +336,3 @@ if __name__ == "__main__":
     else:
         save_to_db(jobs)
         print(f"\nDone! {len(jobs)} IT jobs saved.")
-
-
