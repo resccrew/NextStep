@@ -12,7 +12,6 @@ function HomePage({ user, profile, jobs = [], onOpenJob, savedIds, onSave, onNav
 
   const firstName = (user.name || '').split(' ')[0] || 'Anna';
   
-  // Безпечні перевірки для розрахунків
   const matchAvg = recommended.length > 0 
     ? Math.round(recommended.reduce((s, j) => s + j.match, 0) / recommended.length) 
     : 0;
@@ -90,7 +89,7 @@ function HomePage({ user, profile, jobs = [], onOpenJob, savedIds, onSave, onNav
         </section>
       ) : (
         <section className="home-feature" style={{textAlign: 'center', padding: '40px 20px'}}>
-          <div className="muted">Вакансії ще завантажуються або їх немає в базі...</div>
+          <div className="muted">Jobs are still loading or are not available in the database...</div>
         </section>
       )}
 

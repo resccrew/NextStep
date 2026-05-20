@@ -1,7 +1,6 @@
 /* global React, ReactDOM, LoginPage, OnboardingPage, HomePage, SearchPage, ProfilePage, SavedPage, Sidebar, JobDetail, Toast, JOBS */
 const { useState, useEffect, useMemo } = React;
 
-// Інструмент розробника (від нового дизайну) - ТЕПЕР ТІЛЬКИ ОДИН РАЗ
 function DevJump({ onLogin, onJump }) {
   const [open, setOpen] = useState(false);
   if (!open) {
@@ -65,11 +64,9 @@ function App() {
   const [toast, setToast] = useState('');
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
-  // Стейт для вакансій з API
   const [jobs, setJobs] = useState([]);
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
 
-  // Стейт для збережених вакансій (масив об'єктів з БД)
   const [savedVacancies, setSavedVacancies] = useState([]);
 
   const handleLogout = () => {
@@ -101,9 +98,9 @@ function App() {
 
           if (refreshRes.ok) {
             const data = await refreshRes.json();
-            localStorage.setItem('access_token', data.access); // Оновлюємо токен
+            localStorage.setItem('access_token', data.access);
             headers['Authorization'] = `Bearer ${data.access}`;
-            response = await fetch(url, { ...options, headers }); // Повторюємо запит
+            response = await fetch(url, { ...options, headers });
           } else {
             handleLogout();
           }
@@ -117,18 +114,15 @@ function App() {
     return response;
   };
 
-  // Допоміжний масив лише з ID робіт
   const savedIds = useMemo(() => savedVacancies.map(sv => sv.job), [savedVacancies]);
 
   useEffect(() => {
     if (!user) return;
     
-    // Якщо це мок-користувач з DevJump, пропускаємо запити до бекенду
     if (user.isDevMock) return;
 
     setIsLoadingJobs(true);
     
-    // 1. Завантажуємо загальний список вакансій
     fetch('http://localhost:8000/api/jobs/')
       .then(res => {
         if (!res.ok) throw new Error('Network response was not ok');
@@ -159,7 +153,6 @@ function App() {
         setIsLoadingJobs(false);
       });
       
-    // 2. Завантажуємо збережені вакансії поточного користувача
     const token = localStorage.getItem('access_token') || user.access_token || user.access;
     
     if (user && !user.isDevMock) {
@@ -173,8 +166,6 @@ function App() {
   }, [user]);
 
   const handleLogin = (u) => {
-    // u - це відповідь від CustomTokenObtainPairView { access, refresh, user: {...} } 
-    // або локальний мок від DevJump
     const userData = u.user ? { ...u.user, access: u.access } : u;
     
     if (u.access) localStorage.setItem('access_token', u.access);
@@ -182,7 +173,6 @@ function App() {
 
     setUser({ ...userData, title: 'Frontend Developer' });
     
-    // Якщо бекенд при логіні повертає збережені вакансії
     if (userData.saved_vacancies) {
       setSavedVacancies(userData.saved_vacancies);
     }
@@ -197,12 +187,10 @@ function App() {
     setToast('Profile saved. Feed updated.');
   };
 
-  // ОНОВЛЕНА ЛОГІКА ЗБЕРЕЖЕННЯ / ВИДАЛЕННЯ З БД
   const toggleSave = (jobId) => {
     const existingSave = savedVacancies.find(sv => sv.job === jobId);
     const token = localStorage.getItem('access_token') || (user && (user.access_token || user.access));
 
-    // Якщо це локальний DevMock без бекенду, просто мутуємо стейт
     if (!token && user?.isDevMock) {
       if (existingSave) {
         setSavedVacancies(prev => prev.filter(sv => sv.job !== jobId));
@@ -213,7 +201,6 @@ function App() {
     }
 
     if (existingSave) {
-      // Видаляємо збережену вакансію (DELETE)
       fetchWithAuth(`http://localhost:8000/api/users/saved-vacancies/${existingSave.id}/`, {
         method: 'DELETE'
       })
@@ -227,7 +214,6 @@ function App() {
       })
       .catch(err => console.error("Помилка видалення:", err));
     } else {
-      // Додаємо збережену вакансію (POST)
       const jobData = jobs.find(j => j.id === jobId);
       fetchWithAuth(`http://localhost:8000/api/users/saved-vacancies/`, {
         method: 'POST',
@@ -251,13 +237,12 @@ function App() {
     }
   };
 
-  // ТЕПЕР ТІЛЬКИ ОДИН РАЗ
   const devJump = (target) => {
     setUser({ name: 'Dev User', email: 'dev@nextstep.local', title: 'Frontend Developer', isDevMock: true });
     setNeedsOnboarding(false);
     setProfile(prev => ({ ...prev, role: 'Frontend Developer', skills: ['React', 'TypeScript', 'CSS'], onboardingDone: true }));
     if (typeof JOBS !== 'undefined' && jobs.length === 0) {
-      setJobs(JOBS); // Заглушка, якщо бекенд не працює під час верстки
+      setJobs(JOBS);
     }
     setPage(target);
   };

@@ -113,7 +113,6 @@ def extract_experience(text: str) -> dict:
 def infer_level(title: str, text: str, years_min: int | None) -> str:
     combined = (title + ' ' + text).lower()
     
-    # Спочатку по явних ключових словах
     if any(w in combined for w in ['senior', 'sr.', 'lead', 'principal', 'staff']):
         return 'senior'
     if any(w in combined for w in ['junior', 'jr.', 'entry', 'graduate', 'intern']):
@@ -121,7 +120,6 @@ def infer_level(title: str, text: str, years_min: int | None) -> str:
     if any(w in combined for w in ['mid', 'middle', 'regular', 'medior']):
         return 'middle'
     
-    # Якщо є кількість років — визначаємо по ній
     if years_min is not None:
         if years_min <= 1:
             return 'junior'
@@ -289,7 +287,6 @@ def save_to_db(jobs_data: list, source_name: str = "praca.pl"):
     for data in jobs_data:
         url_hash = hashlib.sha256(data['url'].encode()).hexdigest()
 
-        # Дедуплікація — пропускаємо якщо вже є
         if Job.objects.filter(url_hash=url_hash).exists():
             continue
 

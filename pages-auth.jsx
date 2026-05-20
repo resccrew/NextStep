@@ -2,9 +2,6 @@
 const { useState: useStateP, useMemo: useMemoP, useEffect: useEffectP } = React;
 
 // ============ Login Page ============
-// GoogleGlyph більше не потрібен, оскільки Google сам рендерить свою іконку, 
-// але ми можемо залишити його, якщо він знадобиться деінде.
-
 function LoginPage({ onLogin }) {
   const [mode, setMode] = useStateP('signin');
   const [email, setEmail] = useStateP('');
@@ -23,11 +20,9 @@ function LoginPage({ onLogin }) {
       callback: handleGoogleResponse
     });
     
-    // ВАЖЛИВО: Повертаємо рендер офіційної кнопки Google. 
-    // Це єдиний надійний спосіб отримати токен без блокувань браузером.
     window.google.accounts.id.renderButton(
       document.getElementById("google-btn-div"),
-      { theme: "outline", size: "large", width: 400, shape: "rectangular" } // width налаштовано під нову картку
+      { theme: "outline", size: "large", width: 400, shape: "rectangular" }
     );
   }, []);
 
@@ -97,7 +92,6 @@ function LoginPage({ onLogin }) {
       setTimeout(() => { onLogin(data.user); }, 700);
 
     } catch (err) {
-      // Backend not running — fall back to local demo login
       if (err instanceof TypeError && err.message.includes('fetch')) {
         setFlying(true);
         setTimeout(() => {
@@ -131,7 +125,6 @@ function LoginPage({ onLogin }) {
         <p className="auth2-sub">AI-matched jobs, sorted by what fits you.</p>
 
         <div className="auth2-card">
-          {/* Контейнер для офіційної кнопки Google замість кастомної */}
           <div 
             id="google-btn-div" 
             style={{ width: '100%', display: 'flex', justifyContent: 'center', minHeight: '40px' }}
