@@ -77,3 +77,26 @@ class Job(models.Model):
 
     def __str__(self):
         return f"{self.title} @ {self.company.name}"
+    
+
+class SearchQueryCache(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+
+    query_text = models.CharField(max_length=255, unique=True, db_index=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Search Query Cache'
+
+    def __str__(self):
+        return f"{self.query_text} [{self.status}]"
+
+    def is_fresh(self, max_age_hours=12):
+        from django.utils import timezone
+        from datetime import timedelta
+        return (timezone.now() - self.updated_at) < timedelta(hours=max_age_hours)

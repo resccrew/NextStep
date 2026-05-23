@@ -34,6 +34,24 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Europe/Warsaw'
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'scrape-popular-keywords-every-12h': {
+        'task': 'jobs.tasks.scrape_keyword',
+        'schedule': crontab(minute=0, hour='*/12'),
+        'args': (['python', 'react', 'java', 'javascript', 'devops',
+                  'frontend', 'backend', 'fullstack', 'php', 'data'],),
+    },
+}
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

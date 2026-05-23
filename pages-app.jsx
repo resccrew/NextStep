@@ -144,24 +144,33 @@ function HomePage({ user, profile, jobs = [], onOpenJob, savedIds, onSave, onNav
 }
 
 // ============ Search Page ============
-function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave }) {
+function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave,
+  onSearch, searchStatus, searchResults, searchQuery, pollAttempts }) {
+
   const [query, setQuery] = useStateH('');
   const [minMatch, setMinMatch] = useStateH(0);
   const [activeTags, setActiveTags] = useStateH([]);
   const [format, setFormat] = useStateH('all');
-  const [useAI, setUseAI] = useStateH(true); // Відновлено з вашого старого коду
+  const [useAI, setUseAI] = useStateH(true);
+
+  const isLiveSearch = searchStatus !== 'idle' && searchQuery === query.trim().toLowerCase();
+  const sourceJobs = isLiveSearch && searchStatus === 'completed' ? searchResults : jobs;
 
   const allTags = useMemoH(() => {
     const t = new Set();
-    jobs.forEach((j) => j.tags.forEach((x) => t.add(x)));
+    sourceJobs.forEach((j) => j.tags.forEach((x) => t.add(x)));
     return [...t];
-  }, [jobs]);
+  }, [sourceJobs]);
 
-  const toggleTag = (t) => setActiveTags((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
+  const toggleTag = (t) => setActiveTags((prev) =>
+    prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
+  );
 
   const results = useMemoH(() => {
-    let r = [...jobs];
-    if (query.trim()) {
+    if (isLiveSearch && searchStatus === 'pending') return [];
+
+    let r = [...sourceJobs];
+    if (query.trim() && !isLiveSearch) {
       const q = query.toLowerCase();
       r = r.filter((j) =>
         j.title.toLowerCase().includes(q) ||
@@ -169,16 +178,18 @@ function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave }) {
         j.tags.join(' ').toLowerCase().includes(q)
       );
     }
-    if (activeTags.length) {
-      r = r.filter((j) => activeTags.some((t) => j.tags.includes(t)));
-    }
-    if (format !== 'all') {
-      r = r.filter((j) => j.location.toLowerCase().includes(format));
-    }
+    if (activeTags.length) r = r.filter((j) => activeTags.some((t) => j.tags.includes(t)));
+    if (format !== 'all') r = r.filter((j) => j.location.toLowerCase().includes(format));
     r = r.filter((j) => j.match >= minMatch);
     r.sort((a, b) => b.match - a.match);
     return r;
-  }, [query, activeTags, minMatch, format, jobs]);
+  }, [query, activeTags, minMatch, format, sourceJobs, isLiveSearch, searchStatus]);
+
+  const handleSearch = () => {
+    if (onSearch && query.trim()) {
+      onSearch(query.trim(), format !== 'all' ? format : '');
+    }
+  };
 
   return (
     <div className="page-edit">
@@ -196,38 +207,85 @@ function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave }) {
       <div className="search-wrap">
         <div className="search-input">
           <Icon.Search />
-          <input placeholder="e.g. React, product designer, analyst..."
-            value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input
+            placeholder="e.g. React, product designer, analyst..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          />
           {query && (
-            <button type="button" className="search-clear" onClick={() => setQuery('')} aria-label="Clear"><Icon.X /></button>
+            <button type="button" className="search-clear"
+              onClick={() => setQuery('')} aria-label="Clear">
+              <Icon.X />
+            </button>
           )}
         </div>
+
         <div className="row" style={{justifyContent: 'space-between', alignItems: 'center', marginTop: 12, flexWrap: 'wrap', gap: 12}}>
           <div className="search-quickchips" style={{marginTop: 0}}>
-            {profile.skills && profile.skills.slice(0, 5).map((s) =>
-              <Chip key={s} on={activeTags.includes(s)} onClick={() => toggleTag(s)}>{s}</Chip>
-            )}
-            {(!profile.skills || profile.skills.length === 0) && allTags.slice(0, 5).map((s) =>
+            {(profile.skills?.length ? profile.skills : allTags).slice(0, 5).map((s) =>
               <Chip key={s} on={activeTags.includes(s)} onClick={() => toggleTag(s)}>{s}</Chip>
             )}
           </div>
-          
-          <label className="row gap-8" style={{fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', userSelect: 'none'}}>
-            <input type="checkbox" checked={useAI} onChange={e=>setUseAI(e.target.checked)}
-              style={{accentColor: 'var(--accent-strong)'}} />
-            <span style={{display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--accent-strong)'}}>
-              <Icon.AI /> AI semantic search
-            </span>
-          </label>
+          <div className="row gap-8">
+            <label className="row gap-8" style={{fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', userSelect: 'none'}}>
+              <input type="checkbox" checked={useAI} onChange={e => setUseAI(e.target.checked)}
+                style={{accentColor: 'var(--accent-strong)'}} />
+              <span style={{display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--accent-strong)'}}>
+                <Icon.AI /> AI semantic search
+              </span>
+            </label>
+            <button className="btn btn-primary btn-sm" onClick={handleSearch}
+              disabled={searchStatus === 'pending' || !query.trim()}>
+              {searchStatus === 'pending' ? 'Searching...' : 'Search web'}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Статус-банер */}
+      {isLiveSearch && searchStatus === 'pending' && (
+        <div style={{
+          padding: '14px 20px', borderRadius: 12, marginBottom: 16,
+          background: 'rgba(15,67,23,0.06)', border: '1px solid rgba(15,67,23,0.12)',
+          display: 'flex', alignItems: 'center', gap: 10, fontSize: 14
+        }}>
+          <span className="live-dot"></span>
+          Scraping fresh jobs for <strong>"{searchQuery}"</strong>...
+          {pollAttempts > 0 && (
+            <span className="muted" style={{marginLeft: 'auto', fontSize: 12}}>
+              attempt {pollAttempts}/{30}
+            </span>
+          )}
+        </div>
+      )}
+      {isLiveSearch && searchStatus === 'failed' && (
+        <div style={{
+          padding: '14px 20px', borderRadius: 12, marginBottom: 16,
+          background: 'rgba(200,50,50,0.06)', border: '1px solid rgba(200,50,50,0.15)',
+          fontSize: 14, color: '#c83232'
+        }}>
+          ✕ Scraping failed. Try again or browse existing results below.
+        </div>
+      )}
+      {isLiveSearch && searchStatus === 'completed' && (
+        <div style={{
+          padding: '14px 20px', borderRadius: 12, marginBottom: 16,
+          background: 'rgba(15,67,23,0.06)', border: '1px solid rgba(15,67,23,0.12)',
+          fontSize: 14
+        }}>
+          ✓ Found <strong>{searchResults.length}</strong> fresh results for "{searchQuery}"
+        </div>
+      )}
 
       <div className="search-layout">
         <aside className="filters">
           <div className="filters-head">
             <span className="eyebrow">Filters</span>
             <button type="button" className="filters-reset"
-              onClick={() => { setActiveTags([]); setMinMatch(0); setFormat('all'); }}>Reset</button>
+              onClick={() => { setActiveTags([]); setMinMatch(0); setFormat('all'); }}>
+              Reset
+            </button>
           </div>
 
           <div className="filters-block">
@@ -245,13 +303,15 @@ function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave }) {
             <div className="filters-label">Format</div>
             <div className="filters-radios">
               {[
-                { id: 'all', label: 'All' },
+                { id: 'all',    label: 'All' },
                 { id: 'remote', label: 'Remote' },
                 { id: 'hybrid', label: 'Hybrid' },
-                { id: 'office', label: 'Office' }
+                { id: 'office', label: 'Office' },
               ].map((f) =>
                 <label key={f.id} className="filters-radio">
-                  <input type="radio" name="fmt" checked={format === f.id} onChange={() => setFormat(f.id)} />
+                  <input type="radio" name="fmt"
+                    checked={format === f.id}
+                    onChange={() => setFormat(f.id)} />
                   <span>{f.label}</span>
                 </label>
               )}
@@ -274,6 +334,7 @@ function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave }) {
               <strong style={{ color: 'var(--text)' }}>{results.length}</strong>
               {results.length === 1 ? ' role' : ' roles'}
               {activeTags.length > 0 && ` · ${activeTags.join(', ')}`}
+              {isLiveSearch && searchStatus === 'completed' && ' · live results'}
             </span>
             <div className="seg-mini">
               <button className="is-on">By match</button>
@@ -281,11 +342,16 @@ function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave }) {
             </div>
           </div>
 
-          {results.length === 0 ?
+          {isLiveSearch && searchStatus === 'pending' ? (
+            <div style={{padding: '40px 0', textAlign: 'center'}}>
+              <div className="muted">Searching fresh jobs from praca.pl...</div>
+            </div>
+          ) : results.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-title">No matches</div>
-              <div className="empty-state-text">Try removing some filters.</div>
-            </div> :
+              <div className="empty-state-text">Try removing some filters or search the web.</div>
+            </div>
+          ) : (
             <ul className="job-list">
               {results.map((j) =>
                 <li key={j.id}>
@@ -296,10 +362,11 @@ function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave }) {
                 </li>
               )}
             </ul>
-          }
+          )}
         </div>
       </div>
-    </div>);
+    </div>
+  );
 }
 
 // ============ Profile Page ============
