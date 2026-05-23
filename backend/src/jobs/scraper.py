@@ -10,8 +10,13 @@ import hashlib
 import django
 import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DJANGO_PROJECT_DIR = os.path.join(BASE_DIR, 'backend', 'src')
+# 1. Get the directory this script is in (.../backend/src/jobs)
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 2. Go one level up to get the Django root (.../backend/src)
+DJANGO_PROJECT_DIR = os.path.dirname(CURRENT_DIR)
+
+# 3. Add it to the Python path
 sys.path.append(DJANGO_PROJECT_DIR)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'base.settings')
@@ -28,10 +33,12 @@ IT_KEYWORDS = [
     "developer", "programista", "programistka", "frontend", "backend",
     "fullstack", "devops", "python", "java", "javascript", "react", "vue",
     "angular", "php", "node", "kotlin", "swift", "android", "ios",
-    "data", "qa", "tester", "analyst", "analityk", "it ", "software",
-    "engineer", "inżynier", "architect", "chmura", "cloud", "sql",
-    "machine learning", "ai ", "ux", "ui ", "product manager", "scrum",
+    "data", "qa", "tester", "analyst", "analityk", "software",
+    "engineer", "inżynier", "architect", "cloud", "sql",
+    "machine learning", "ai", "ux", "ui", "product manager", "scrum",
     "cybersecurity", "network", "linux", "administrator", "systemu",
+    "informatyk", "postgresql", "mongodb", "docker", "kubernetes",
+    "baz danych", "programowanie", "it specialist",
 ]
 
 SKILL_TAGS = [
@@ -94,7 +101,6 @@ def get_job_urls(page_url):
 def extract_experience(text: str) -> dict:
     text_lower = text.lower()
     
-    # Шукаємо "2-4 years", "3+ years", "від 2 років" тощо
     pattern = re.search(r'(\d+)\s*[-–]\s*(\d+)\s*(years?|років|lat)', text_lower)
     if pattern:
         return {

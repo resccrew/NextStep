@@ -69,6 +69,97 @@ function App() {
 
   const [savedVacancies, setSavedVacancies] = useState([]);
 
+  const [searchStatus, setSearchStatus] = useState('idle'); // 'idle' | 'pending' | 'completed' | 'failed'
+const [searchQuery, setSearchQuery] = useState('');
+const [searchResults, setSearchResults] = useState([]);
+const [pollAttempts, setPollAttempts] = useState(0);
+
+const POLL_INTERVAL_MS = 4000;
+const MAX_POLLS = 30;
+
+const searchJobs = async (query, workMode = '') => {
+  const q = query.trim().toLowerCase();
+  if (!q) return;
+
+  setSearchQuery(q);
+  setSearchStatus('pending');
+  setSearchResults([]);
+
+  const params = new URLSearchParams({ q });
+  if (workMode) params.append('work_mode', workMode);
+
+  try {
+    const res = await fetch(`http://localhost:8000/api/jobs/search/?${params}`);
+    const data = await res.json();
+
+    if (data.status === 'completed') {
+      setSearchResults(data.results.map(formatJob));
+      setSearchStatus('completed');
+    } else if (data.status === 'pending') {
+      pollSearchStatus(q, workMode, 0);
+    } else {
+      setSearchStatus('failed');
+    }
+  } catch (err) {
+    console.error('Search error:', err);
+    setSearchStatus('failed');
+    setToast('Search failed. Please try again.');
+  }
+};
+
+const pollSearchStatus = (query, workMode, attempts) => {
+  if (attempts >= MAX_POLLS) {
+    setSearchStatus('failed');
+    setToast('Search is taking too long. Try again later.');
+    return;
+  }
+
+  setTimeout(async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/jobs/search/status/?q=${encodeURIComponent(query)}`
+      );
+      const data = await res.json();
+
+      if (data.status === 'completed') {
+        const params = new URLSearchParams({ q: query });
+        if (workMode) params.append('work_mode', workMode);
+
+        const jobsRes = await fetch(`http://localhost:8000/api/jobs/search/?${params}`);
+        const jobsData = await jobsRes.json();
+
+        setSearchResults((jobsData.results || []).map(formatJob));
+        setSearchStatus('completed');
+        setPollAttempts(0);
+      } else if (data.status === 'failed') {
+        setSearchStatus('failed');
+        setToast('Scraping failed. Please try again.');
+      } else {
+        setPollAttempts(attempts + 1);
+        pollSearchStatus(query, workMode, attempts + 1);
+      }
+    } catch (err) {
+      console.error('Poll error:', err);
+      pollSearchStatus(query, workMode, attempts + 1);
+    }
+  }, POLL_INTERVAL_MS);
+};
+
+const formatJob = (j) => ({
+  id: j.id,
+  title: j.title,
+  company: j.company?.name || j.company || 'Unknown',
+  logo: j.company?.logo_letter || j.logo || '?',
+  location: j.location,
+  salary: j.salary || 'Negotiable',
+  type: j.employment_type || 'Full-time',
+  tags: j.tags || [],
+  url: j.original_url || j.url,
+  posted: 'Recently',
+  match: Math.floor(Math.random() * (98 - 65 + 1)) + 65,
+  featured: false
+});
+
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('access_token');
@@ -276,8 +367,19 @@ function App() {
     content = <HomePage user={user} profile={profile} jobs={jobs}
       onOpenJob={setOpenJob} savedIds={savedIds} onSave={toggleSave} onNav={setPage} />;
   } else if (page === 'search') {
-    content = <SearchPage user={user} profile={profile} jobs={jobs}
-      onOpenJob={setOpenJob} savedIds={savedIds} onSave={toggleSave} />;
+  content = <SearchPage
+    user={user}
+    profile={profile}
+    jobs={jobs}
+    onOpenJob={setOpenJob}
+    savedIds={savedIds}
+    onSave={toggleSave}
+    onSearch={searchJobs}
+    searchStatus={searchStatus}
+    searchResults={searchResults}
+    searchQuery={searchQuery}
+    pollAttempts={pollAttempts}
+  />;
   } else if (page === 'profile') {
     content = <ProfilePage user={user} profile={profile} jobs={jobs}
       onSave={(p) => { setProfile(prev => ({...prev, ...p})); setToast('Profile updated.'); }}

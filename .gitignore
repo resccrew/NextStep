@@ -6,3 +6,9 @@ __pycache__/
 node_modules/
 package-lock.json
 package.json
+dist/
+build/
+*.log
+*.sqlite3
+celerybeat-schedule
+*.env
