@@ -10,7 +10,7 @@ function HomePage({ user, profile, jobs = [], onOpenJob, savedIds, onSave, onNav
   const topMatch = recommended[0];
   const rest = recommended.slice(1);
 
-  const firstName = (user.name || '').split(' ')[0] || 'Anna';
+  const firstName = (user.name || user.username || '').split(' ')[0] || 'You';
   
   const matchAvg = recommended.length > 0 
     ? Math.round(recommended.reduce((s, j) => s + j.match, 0) / recommended.length) 
