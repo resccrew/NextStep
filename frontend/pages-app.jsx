@@ -447,4 +447,134 @@ function SavedPage({ user, jobs = [], savedIds, onOpenJob, onSave }) {
   );
 }
 
-Object.assign(window, { HomePage, SearchPage, ProfilePage, SavedPage });
+// ============ Settings Page ============
+function SettingsPage({ user, theme, onThemeChange, onLogout }) {
+  const [pwOpen, setPwOpen] = useStateH(false);
+  const [pwCurrent, setPwCurrent] = useStateH('');
+  const [pwNew, setPwNew] = useStateH('');
+  const [pwConfirm, setPwConfirm] = useStateH('');
+  const [pwError, setPwError] = useStateH('');
+  const [pwSuccess, setPwSuccess] = useStateH(false);
+
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    setPwError('');
+    setPwSuccess(false);
+    if (!pwCurrent || !pwNew || !pwConfirm) {
+      setPwError('Please fill in all fields.');
+      return;
+    }
+    if (pwNew !== pwConfirm) {
+      setPwError('New passwords do not match.');
+      return;
+    }
+    if (pwNew.length < 8) {
+      setPwError('New password must be at least 8 characters.');
+      return;
+    }
+    // TODO: call backend API to change password
+    setPwSuccess(true);
+    setPwCurrent(''); setPwNew(''); setPwConfirm('');
+  };
+
+  return (
+    <div className="page-edit">
+      <header className="page-head">
+        <div className="col gap-4">
+          <div className="eyebrow">Settings</div>
+          <h1 className="page-hello">Preferences.</h1>
+        </div>
+      </header>
+
+      <section className="settings-section">
+        <div className="settings-group">
+          <div className="settings-group-title">Appearance</div>
+          <div className="settings-row">
+            <div className="settings-row-info">
+              <div className="settings-row-label">Theme</div>
+              <div className="settings-row-sub">Choose how NextStep looks</div>
+            </div>
+            <div className="settings-theme-toggle">
+              <button
+                className={`settings-theme-btn ${theme === 'light' ? 'is-on' : ''}`}
+                onClick={() => onThemeChange('light')}>
+                <Icon.Sun /> Light
+              </button>
+              <button
+                className={`settings-theme-btn ${theme === 'dark' ? 'is-on' : ''}`}
+                onClick={() => onThemeChange('dark')}>
+                <Icon.Moon /> Dark
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="settings-group">
+          <div className="settings-group-title">Account</div>
+          <div className="settings-row">
+            <div className="settings-row-info">
+              <div className="settings-row-label">{user.name || user.username}</div>
+              <div className="settings-row-sub">{user.email}</div>
+            </div>
+          </div>
+
+          <div className="settings-row settings-row-expandable" style={{flexDirection: 'column', alignItems: 'stretch', gap: 0}}>
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}
+                 onClick={() => { setPwOpen(o => !o); setPwError(''); setPwSuccess(false); }}>
+              <div className="settings-row-info">
+                <div className="settings-row-label">Change password</div>
+                <div className="settings-row-sub">Update your account password</div>
+              </div>
+              <button className="btn btn-ghost btn-sm" type="button"
+                      onClick={e => { e.stopPropagation(); setPwOpen(o => !o); setPwError(''); setPwSuccess(false); }}>
+                {pwOpen ? 'Cancel' : 'Change'}
+              </button>
+            </div>
+
+            {pwOpen && (
+              <form onSubmit={handlePasswordSubmit} style={{display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 16}}>
+                <input
+                  className="auth2-input"
+                  type="password"
+                  placeholder="Current password"
+                  value={pwCurrent}
+                  onChange={e => setPwCurrent(e.target.value)}
+                  autoComplete="current-password"
+                />
+                <input
+                  className="auth2-input"
+                  type="password"
+                  placeholder="New password"
+                  value={pwNew}
+                  onChange={e => setPwNew(e.target.value)}
+                  autoComplete="new-password"
+                />
+                <input
+                  className="auth2-input"
+                  type="password"
+                  placeholder="Confirm new password"
+                  value={pwConfirm}
+                  onChange={e => setPwConfirm(e.target.value)}
+                  autoComplete="new-password"
+                />
+                {pwError && <div className="auth2-error">{pwError}</div>}
+                {pwSuccess && <div style={{fontSize: 13, color: 'var(--accent-strong)', textAlign: 'center', padding: '6px 0'}}>Password updated successfully.</div>}
+                <button className="auth2-cta" type="submit">Save new password</button>
+              </form>
+            )}
+          </div>
+
+          <div className="settings-row">
+            <div className="settings-row-info">
+              <div className="settings-row-label">Sign out</div>
+              <div className="settings-row-sub">Log out of your account</div>
+            </div>
+            <button className="btn btn-ghost btn-sm" onClick={onLogout}>Sign out</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+Object.assign(window, { HomePage, SearchPage, ProfilePage, SavedPage, SettingsPage });

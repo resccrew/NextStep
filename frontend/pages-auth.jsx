@@ -20,9 +20,10 @@ function LoginPage({ onLogin }) {
       callback: handleGoogleResponse
     });
     
+    const isDark = localStorage.getItem('theme') === 'dark';
     window.google.accounts.id.renderButton(
       document.getElementById("google-btn-div"),
-      { theme: "outline", size: "large", width: 400, shape: "rectangular" }
+      { theme: isDark ? "filled_black" : "outline", size: "large", width: 400, shape: "rectangular" }
     );
   }, []);
 
