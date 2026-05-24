@@ -15,7 +15,7 @@ class JobSerializer(serializers.ModelSerializer):
         model = Job
         fields = [
             'id', 'title', 'company', 'location', 'salary',
-            'employment_type', 'work_mode', 'tags',
+            'employment_type', 'work_mode', 'tags', 'description',
             'original_url', 'is_active', 'scraped_at', 'source_name',
         ]
 

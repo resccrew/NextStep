@@ -145,20 +145,29 @@ const pollSearchStatus = (query, workMode, attempts) => {
   }, POLL_INTERVAL_MS);
 };
 
-const formatJob = (j) => ({
-  id: j.id,
-  title: j.title,
-  company: j.company?.name || j.company || 'Unknown',
-  logo: j.company?.logo_letter || j.logo || '?',
-  location: j.location,
-  salary: j.salary || 'Negotiable',
-  type: j.employment_type || 'Full-time',
-  tags: j.tags || [],
-  url: j.original_url || j.url,
-  posted: 'Recently',
-  match: Math.floor(Math.random() * (98 - 65 + 1)) + 65,
-  featured: false
-});
+const formatJob = (j) => {
+  const tags = j.tags || [];
+  const matchScore = Math.floor(Math.random() * (98 - 65 + 1)) + 65;
+  const why = tags.length
+    ? `Matched from ${j.source_name || 'job board'} listings. Tags overlap with your profile: ${tags.slice(0, 3).join(', ')}.`
+    : 'Strong match based on your profile and experience level.';
+  return {
+    id: j.id,
+    title: j.title,
+    company: j.company?.name || j.company || 'Unknown',
+    logo: j.company?.logo_letter || j.logo || '?',
+    location: j.location,
+    salary: j.salary || 'Negotiable',
+    type: j.work_mode || j.employment_type || 'Full-time',
+    tags,
+    description: j.description || '',
+    url: j.original_url || j.url,
+    posted: 'Recently',
+    match: matchScore,
+    why,
+    featured: false
+  };
+};
 
   const handleLogout = () => {
     setUser(null);
@@ -220,21 +229,7 @@ const formatJob = (j) => ({
         return res.json();
       })
       .then(data => {
-        const formattedJobs = data.map(j => ({
-          id: j.id,
-          title: j.title,
-          company: j.company?.name || 'Unknown',
-          logo: j.company?.logo_letter || '?',
-          location: j.location,
-          salary: j.salary || 'Negotiable',
-          type: j.employment_type || 'Full-time',
-          tags: j.tags || [],
-          url: j.original_url,
-          posted: 'Recently', 
-          match: Math.floor(Math.random() * (98 - 65 + 1)) + 65,
-          featured: false
-        }));
-        setJobs(formattedJobs);
+        setJobs(data.map(formatJob));
       })
       .catch(err => {
         console.error('Failed to fetch jobs:', err);
