@@ -64,12 +64,12 @@ function LoginPage({ onLogin }) {
     const endpoint = mode === 'signin' ? '/login/' : '/register/';
 
     const payload = mode === 'signin'
-      ? { username: email, password: password }
-      : {
-          username: name || email.split('@')[0],
-          email: email,
-          password: password
-        };
+    ? { email: email, password: password } // <-- Changed 'username' to 'email'
+    : {
+        username: name || email.split('@')[0],
+        email: email,
+        password: password
+      };
 
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -81,7 +81,7 @@ function LoginPage({ onLogin }) {
       const data = await response.json();
 
       if (!response.ok) {
-        const errorMsg = data.detail || (data.username && data.username[0]) || 'Authorization error';
+        const errorMsg = data.detail || (data.email && data.email[0]) || 'Authorization error';
         throw new Error(errorMsg);
       }
 
