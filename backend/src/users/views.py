@@ -62,6 +62,7 @@ class GoogleLoginView(APIView):
                     'id': user.id,
                     'username': user.username,
                     'email': user.email,
+                    'name': f"{user.first_name} {user.last_name}".strip() or user.username,
                     'onboarding_done': user.onboarding_done,
                     'role': profile.role if profile else None,
                     'experience': profile.experience if profile else None,
@@ -114,6 +115,7 @@ class RegisterView(generics.CreateAPIView):
                 'id': user.id,
                 'username': user.username,
                 'email': user.email,
+                'name': f"{user.first_name} {user.last_name}".strip() or user.username,
                 'onboarding_done': user.onboarding_done,
             }
         }, status=status.HTTP_201_CREATED)
