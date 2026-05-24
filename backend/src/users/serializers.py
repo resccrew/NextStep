@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from users.models import SavedVacancy, User
+from users.models import SavedVacancy, User, UserProfile
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
@@ -25,30 +25,32 @@ class SavedVacancySerializer(serializers.ModelSerializer):
 
 class OnboardingSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ['role', 'experience', 'skills', 'formats', 'salary', 'onboarding_done']
+        model = UserProfile
+        fields = ['role', 'experience', 'skills', 'formats', 'salary']
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
-
-        saved_vacancies = SavedVacancySerializer(self.user.saved_vacancies.all(), many=True).data
+        user = self.user
+        
+        profile = getattr(user, 'profile', None)
+        saved_vacancies = SavedVacancySerializer(user.saved_vacancies.all(), many=True).data
 
         data['user'] = {
-            'id': self.user.id,
-            'username': self.user.username,
-            'email': self.user.email,
-            'onboarding_done': self.user.onboarding_done,
-            'role': self.user.role,
-            'experience': self.user.experience,
-            'skills': self.user.skills,
-            'formats': self.user.formats,
-            'salary': self.user.salary,
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'onboarding_done': user.onboarding_done,
+            'role': profile.role if profile else None,
+            'experience': profile.experience if profile else None,
+            'skills': profile.skills if profile else [],
+            'formats': profile.formats if profile else [],
+            'salary': profile.salary if profile else None,
             'saved_vacancies': saved_vacancies,
         }
         return data
 
 class CVSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = UserProfile
         fields = ['cv_text']
