@@ -69,6 +69,13 @@ function App() {
 
   const [savedVacancies, setSavedVacancies] = useState([]);
 
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
   const [searchStatus, setSearchStatus] = useState('idle'); // 'idle' | 'pending' | 'completed' | 'failed'
 const [searchQuery, setSearchQuery] = useState('');
 const [searchResults, setSearchResults] = useState([]);
@@ -382,6 +389,9 @@ const formatJob = (j) => {
   } else if (page === 'saved') {
     content = <SavedPage user={user} jobs={jobs} savedIds={savedIds}
       onOpenJob={setOpenJob} onSave={toggleSave} />;
+  } else if (page === 'settings') {
+    content = <SettingsPage user={user} theme={theme} onThemeChange={setTheme}
+      onLogout={() => { setUser(null); localStorage.removeItem('access_token'); localStorage.removeItem('refresh_token'); }} />;
   }
 
   return (
