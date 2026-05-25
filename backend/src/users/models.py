@@ -21,6 +21,12 @@ class UserProfile(models.Model):
         ('lead', 'Lead / Expert'),
     ]
 
+    THEME_CHOICES = [
+        ('light', 'Light'),
+        ('dark', 'Dark'),
+        ('system', 'System Default')
+    ]
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     cv_text = models.TextField(blank=True, null=True)
     
@@ -30,6 +36,8 @@ class UserProfile(models.Model):
     
     skills = models.JSONField(default=list, blank=True)
     formats = models.JSONField(default=list, blank=True)
+
+    theme = models.CharField(max_length=20, choices=THEME_CHOICES, default='dark')
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

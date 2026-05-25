@@ -98,7 +98,7 @@ function Sidebar({ page, onNav, user }) {
         <Avatar name={user.name} size={32} />
         <div className="col" style={{ lineHeight: 1.2, minWidth: 0, flex: 1 }}>
           <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.name}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.title || 'Candidate'}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.role || user.title || 'Candidate'}</div>
         </div>
       </div>
     </aside>);

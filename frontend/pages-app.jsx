@@ -370,15 +370,148 @@ function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave,
 }
 
 // ============ Profile Page ============
-function ProfilePage({ user, profile, onSave, onNav }) {
+function ProfilePage({ user, profile, onSave, onNav, fetchWithAuth }) {
   const firstName = (user.name || '').split(' ')[0] || 'You';
+  const [editing, setEditing] = useStateH(false);
+  const [serverProfile, setServerProfile] = useStateH(null);
+  const [loading, setLoading] = useStateH(true);
+
+  const EXP_LABEL = { junior: 'Junior', middle: 'Mid-level', senior: 'Senior', lead: 'Lead / Expert' };
+  const FORMAT_LABEL = { remote: 'Remote', hybrid: 'Hybrid', office: 'Office', relocation: 'Open to relocation' };
+
+  // Завантажуємо актуальні дані профілю з сервера при монтуванні
+  useEffectH(() => {
+    if (user.isDevMock) {
+      setServerProfile(profile);
+      setLoading(false);
+      return;
+    }
+    fetchWithAuth('http://127.0.0.1:8000/api/users/onboarding/')
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        setServerProfile(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setServerProfile(profile);
+        setLoading(false);
+      });
+  }, []);
+
+  const isComplete = serverProfile && serverProfile.role && 
+    serverProfile.skills?.length >= 3 && 
+    serverProfile.experience && 
+    serverProfile.formats?.length;
+
+  // Визначаємо прогрес якщо не завершено
+  const getProgress = () => {
+  if (!serverProfile) return 1;
+  if (!serverProfile.role) return 1;                          // крок 1: роль не заповнена
+  if (!serverProfile.skills?.length || serverProfile.skills.length < 3) return 2;  // крок 2: скіли не заповнені
+  return 3;                                                   // крок 3: преференції
+};
+
+  if (loading) {
+    return (
+      <div className="page-edit">
+        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+          Loading profile...
+        </div>
+      </div>
+    );
+  }
+
+  // Режим перегляду завершеного профілю
+  if (isComplete && !editing) {
+    return (
+      <div className="profile-edit">
+        <header className="page-head">
+          <div className="col gap-4">
+            <div className="eyebrow row gap-6"><span className="live-dot"></span> Profile</div>
+            <h1 className="page-hello">About&nbsp;<em>{firstName}</em>.</h1>
+          </div>
+          <button className="btn btn-ghost btn-sm" onClick={() => setEditing(true)}>
+            Edit profile
+          </button>
+        </header>
+
+        <section className="profile-id">
+          <div className="profile-id-main">
+            <div className="profile-id-name">{user.name}</div>
+            <div className="profile-id-email">{user.email}</div>
+          </div>
+          <div className="profile-id-meter">
+            <div className="profile-id-meter-label">Profile completeness</div>
+            <div className="profile-id-meter-row">
+              <div className="profile-id-meter-track">
+                <div className="profile-id-meter-fill" style={{ width: '100%' }}></div>
+              </div>
+              <span className="profile-id-meter-pct">100%</span>
+            </div>
+          </div>
+        </section>
+
+        {/* Картки з даними */}
+        <div className="col gap-16" style={{ marginTop: 24 }}>
+          
+          <div className="stat" style={{ padding: '20px 24px', borderRadius: 16 }}>
+            <div className="l" style={{ marginBottom: 8 }}>Looking for</div>
+            <div className="v" style={{ fontSize: 22 }}>{serverProfile.role}</div>
+            <div className="muted" style={{ marginTop: 4 }}>
+              {EXP_LABEL[serverProfile.experience] || serverProfile.experience}
+            </div>
+          </div>
+
+          <div className="stat" style={{ padding: '20px 24px', borderRadius: 16 }}>
+            <div className="l" style={{ marginBottom: 10 }}>Skills ({serverProfile.skills.length})</div>
+            <div className="row gap-8" style={{ flexWrap: 'wrap' }}>
+              {serverProfile.skills.map(s => (
+                <span key={s} className="tag">{s}</span>
+              ))}
+            </div>
+          </div>
+
+          <div className="row gap-16" style={{ flexWrap: 'wrap' }}>
+            <div className="stat" style={{ flex: 1, minWidth: 160, padding: '20px 24px', borderRadius: 16 }}>
+              <div className="l" style={{ marginBottom: 8 }}>Work format</div>
+              <div className="row gap-6" style={{ flexWrap: 'wrap', marginTop: 4 }}>
+                {serverProfile.formats.map(f => (
+                  <span key={f} className="tag">{FORMAT_LABEL[f] || f}</span>
+                ))}
+              </div>
+            </div>
+            <div className="stat" style={{ flex: 1, minWidth: 160, padding: '20px 24px', borderRadius: 16 }}>
+              <div className="l" style={{ marginBottom: 8 }}>Expected salary</div>
+              <div className="v" style={{ fontSize: 22 }}>${serverProfile.salary * 10}</div>
+              <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>per month</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    );
+  }
+
+  // Режим редагування / неповного профілю
   return (
     <div className="profile-edit">
       <header className="page-head">
         <div className="col gap-4">
           <div className="eyebrow row gap-6"><span className="live-dot"></span> Profile</div>
           <h1 className="page-hello">About&nbsp;<em>{firstName}</em>.</h1>
+          {!isComplete && (
+            <div className="page-subhello">
+              {getProgress() === 0 && "Let's set up your profile to get better matches."}
+              {getProgress() === 1 && "Almost there — pick your skills to continue."}
+              {getProgress() === 2 && "One last step — set your preferences."}
+            </div>
+          )}
         </div>
+        {editing && (
+          <button className="btn btn-ghost btn-sm" onClick={() => setEditing(false)}>
+            Cancel
+          </button>
+        )}
       </header>
 
       <section className="profile-id">
@@ -386,23 +519,37 @@ function ProfilePage({ user, profile, onSave, onNav }) {
           <div className="profile-id-name">{user.name}</div>
           <div className="profile-id-email">{user.email}</div>
         </div>
-        <div className="profile-id-meter">
-          <div className="profile-id-meter-label">Profile completeness</div>
-          <div className="profile-id-meter-row">
-            <div className="profile-id-meter-track">
-              <div className="profile-id-meter-fill" style={{ width: '78%' }}></div>
+        {!isComplete && (
+          <div className="profile-id-meter">
+            <div className="profile-id-meter-label">Profile completeness</div>
+            <div className="profile-id-meter-row">
+              <div className="profile-id-meter-track">
+                <div className="profile-id-meter-fill" 
+                  style={{ width: `${[0, 33, 66, 100][getProgress()]}%` }}></div>
+              </div>
+              <span className="profile-id-meter-pct">{[0, 33, 66, 100][getProgress()]}%</span>
             </div>
-            <span className="profile-id-meter-pct">78%</span>
           </div>
-        </div>
+        )}
       </section>
 
       <section className="profile-form">
-        <OnboardingPage
-          profile={profile}
-          embedded
-          onSave={(p) => { onSave(p); onNav('home'); }}
-          onSkip={() => onNav('home')} />
+        {!loading && (  // ← додай цю перевірку
+          <OnboardingPage
+            profile={serverProfile || profile}
+            embedded
+            initialStep={getProgress()}   // ← без + 1, бо тепер повертає 1/2/3
+            onSave={(p) => {
+              setServerProfile(prev => ({ ...prev, ...p }));
+              onSave(p);
+              setEditing(false);
+            }}
+            onSkip={() => {
+              if (editing) setEditing(false);
+              else onNav('home');
+            }}
+          />
+        )}
       </section>
     </div>
   );
@@ -456,10 +603,11 @@ function SettingsPage({ user, theme, onThemeChange, onLogout }) {
   const [pwError, setPwError] = useStateH('');
   const [pwSuccess, setPwSuccess] = useStateH(false);
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setPwError('');
     setPwSuccess(false);
+    
     if (!pwCurrent || !pwNew || !pwConfirm) {
       setPwError('Please fill in all fields.');
       return;
@@ -472,9 +620,36 @@ function SettingsPage({ user, theme, onThemeChange, onLogout }) {
       setPwError('New password must be at least 8 characters.');
       return;
     }
-    // TODO: call backend API to change password
-    setPwSuccess(true);
-    setPwCurrent(''); setPwNew(''); setPwConfirm('');
+
+    try {
+      const token = localStorage.getItem('access_token');
+      const res = await fetch('http://127.0.0.1:8000/api/users/change-password/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          old_password: pwCurrent, 
+          new_password: pwNew 
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Витягуємо помилку з бекенду (наприклад, якщо старий пароль неправильний)
+        const errorMsg = data.old_password?.[0] || data.new_password?.[0] || 'Failed to change password.';
+        throw new Error(errorMsg);
+      }
+
+      setPwSuccess(true);
+      setPwCurrent(''); 
+      setPwNew(''); 
+      setPwConfirm('');
+    } catch (err) {
+      setPwError(err.message);
+    }
   };
 
   return (
