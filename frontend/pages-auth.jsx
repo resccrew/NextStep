@@ -194,8 +194,8 @@ const EXP_LEVELS = [
   { id: 'lead',     label: 'Lead / Expert', years: '6+ years',     pct: 95 }
 ];
 
-function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
-  const [step, setStep] = useStateP(profile.onboardingStep || 1);
+function OnboardingPage({ profile, onSave, onSkip, embedded = false, initialStep = 1 }) {
+  const [step, setStep] = useStateP(initialStep);
   const [activeGroup, setActiveGroup] = useStateP(SKILL_GROUPS[0].name);
   const [skills, setSkills] = useStateP(profile.skills || []);
   const [exp, setExp] = useStateP(profile.experience || 'middle');
@@ -226,6 +226,7 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
       onboarding_done: true
     };
 
+
     try {
       const token = localStorage.getItem('access_token');
       const response = await fetch('http://127.0.0.1:8000/api/users/onboarding/', {
@@ -249,6 +250,23 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const saveStepToServer = async (data) => {
+  try {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+    await fetch('http://127.0.0.1:8000/api/users/onboarding/', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
+    });
+  } catch (err) {
+    console.error('Failed to save step:', err);
+  }
   };
 
   return (
@@ -300,8 +318,11 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
           </div>
 
           <div className="row" style={{justifyContent: 'flex-end', marginTop: 12}}>
-            <button className="btn btn-primary" disabled={!canNext1} onClick={()=>setStep(2)} style={{opacity: canNext1?1:0.5}}>
-              Next <Icon.Arrow />
+            <button className="btn btn-primary" disabled={!canNext1} onClick={async () => {
+              await saveStepToServer({ role, experience: exp });
+              setStep(2);
+              }} style={{opacity: canNext1?1:0.5}}>
+                Next <Icon.Arrow />
             </button>
           </div>
         </div>
@@ -355,7 +376,10 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false }) {
 
           <div className="row" style={{justifyContent: 'space-between', marginTop: 12}}>
             <button className="btn btn-ghost" onClick={()=>setStep(1)}>Back</button>
-            <button className="btn btn-primary" disabled={!canNext2} onClick={()=>setStep(3)} style={{opacity: canNext2?1:0.5}}>
+            <button className="btn btn-primary" disabled={!canNext2} onClick={async () => {
+              await saveStepToServer({ role, experience: exp, skills });
+              setStep(3);
+            }} style={{opacity: canNext2?1:0.5}}>
               Next <Icon.Arrow />
             </button>
           </div>

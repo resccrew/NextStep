@@ -69,14 +69,28 @@ function App() {
 
   const [savedVacancies, setSavedVacancies] = useState([]);
 
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+  const [theme, setTheme] = useState(() => {
+  return user?.theme || localStorage.getItem('theme') || 'dark';
+  });
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+  
+  if (user && !user.isDevMock) {
+    const token = localStorage.getItem('access_token') || user.access;
+    fetch('http://127.0.0.1:8000/api/users/settings/', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ theme: theme })
+    }).catch(err => console.error("Failed to save theme to server:", err));
+  }
+  }, [theme, user]);
 
-  const [searchStatus, setSearchStatus] = useState('idle'); // 'idle' | 'pending' | 'completed' | 'failed'
+const [searchStatus, setSearchStatus] = useState('idle'); // 'idle' | 'pending' | 'completed' | 'failed'
 const [searchQuery, setSearchQuery] = useState('');
 const [searchResults, setSearchResults] = useState([]);
 const [pollAttempts, setPollAttempts] = useState(0);
@@ -178,9 +192,10 @@ const formatJob = (j) => {
 
   const handleLogout = () => {
     setUser(null);
+    setPage('home');
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
-    setToast('Session expired. Please log in again.');
+    setToast('Successfully signed out.');
   };
 
   const fetchWithAuth = async (url, options = {}) => {
@@ -264,10 +279,14 @@ const formatJob = (j) => {
     if (u.access) localStorage.setItem('access_token', u.access);
     if (u.refresh) localStorage.setItem('refresh_token', u.refresh);
 
-    setUser({ ...userData, title: 'Frontend Developer' });
+    setUser({ ...userData, title: userData.role || userData.title || '' });
     
     if (userData.saved_vacancies) {
       setSavedVacancies(userData.saved_vacancies);
+    }
+    
+    if (userData.theme) {
+      setTheme(userData.theme);
     }
 
     setNeedsOnboarding(!userData.onboarding_done && !userData.isDevMock);
@@ -383,15 +402,20 @@ const formatJob = (j) => {
     pollAttempts={pollAttempts}
   />;
   } else if (page === 'profile') {
-    content = <ProfilePage user={user} profile={profile} jobs={jobs}
-      onSave={(p) => { setProfile(prev => ({...prev, ...p})); setToast('Profile updated.'); }}
-      onNav={setPage} />;
+  content = <ProfilePage 
+    user={user} 
+    profile={profile} 
+    jobs={jobs}
+    onSave={(p) => { setProfile(prev => ({...prev, ...p})); setToast('Profile updated.'); }}
+    onNav={setPage}
+    fetchWithAuth={fetchWithAuth}  // ← додати це
+  />;
   } else if (page === 'saved') {
     content = <SavedPage user={user} jobs={jobs} savedIds={savedIds}
       onOpenJob={setOpenJob} onSave={toggleSave} />;
   } else if (page === 'settings') {
-    content = <SettingsPage user={user} theme={theme} onThemeChange={setTheme}
-      onLogout={() => { setUser(null); localStorage.removeItem('access_token'); localStorage.removeItem('refresh_token'); }} />;
+    content = <SettingsPage user={user} theme={theme} onThemeChange={setTheme}  
+      onLogout={handleLogout} />;
   }
 
   return (

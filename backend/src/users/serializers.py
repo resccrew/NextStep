@@ -17,6 +17,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         return user
     
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, min_length=8)
+
 class SavedVacancySerializer(serializers.ModelSerializer):
     class Meta:
         model = SavedVacancy
@@ -46,6 +50,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'skills': profile.skills if profile else [],
             'formats': profile.formats if profile else [],
             'salary': profile.salary if profile else None,
+            'theme': profile.theme if profile else 'dark',
             'saved_vacancies': saved_vacancies,
         }
         return data
@@ -54,3 +59,8 @@ class CVSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['cv_text']
+
+class SettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['theme']

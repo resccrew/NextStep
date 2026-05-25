@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from users.models import SavedVacancy, UserProfile
 from .serializers import (
     OnboardingSerializer, RegisterSerializer, CustomTokenObtainPairSerializer,
-    CVSerializer, SavedVacancySerializer
+    CVSerializer, SavedVacancySerializer, SettingsSerializer, ChangePasswordSerializer
 )
 
 load_dotenv()
@@ -120,12 +120,31 @@ class RegisterView(generics.CreateAPIView):
             }
         }, status=status.HTTP_201_CREATED)
 
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            if not user.check_password(serializer.validated_data.get("old_password")):
+                return Response(
+                    {"old_password": ["The current password is incorrect."]}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            user.set_password(serializer.validated_data.get("new_password"))
+            user.save()
+            
+            return Response({"message": "Password changed successfully."}, status=status.HTTP_200_OK)
+            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
-class SaveOnboardingView(generics.UpdateAPIView):
+class SaveOnboardingView(generics.RetrieveUpdateAPIView):
     serializer_class = OnboardingSerializer
     permission_classes = [IsAuthenticated]
 
@@ -152,3 +171,11 @@ class ManageCVView(generics.RetrieveUpdateDestroyAPIView):
     def perform_destroy(self, instance):
         instance.cv_text = ""
         instance.save(update_fields=['cv_text'])
+
+class SaveSettingsView(generics.UpdateAPIView):
+    serializer_class = SettingsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        profile, created = UserProfile.objects.get_or_create(user=self.request.user)
+        return profile
