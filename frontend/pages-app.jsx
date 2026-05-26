@@ -152,9 +152,15 @@ function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave,
   const [activeTags, setActiveTags] = useStateH([]);
   const [format, setFormat] = useStateH('all');
   const [useAI, setUseAI] = useStateH(true);
-
+  const [searchPage, setSearchPage] = useStateH(1);
+  const [searchTotalCount, setSearchTotalCount] = useStateH(0);
+  const PAGE_SIZE = 10;
+  const [localPage, setLocalPage] = useStateH(1);
+  const LOCAL_PAGE_SIZE = 10;
+  const [searchMeta, setSearchMeta] = useState({ count: 0, page: 1 });
   const isLiveSearch = searchStatus !== 'idle' && searchQuery === query.trim().toLowerCase();
   const sourceJobs = isLiveSearch && searchStatus === 'completed' ? searchResults : jobs;
+  useEffectH(() => { setLocalPage(1); }, [query, activeTags, minMatch, format]);
 
   const allTags = useMemoH(() => {
     const t = new Set();
@@ -184,6 +190,13 @@ function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave,
     r.sort((a, b) => b.match - a.match);
     return r;
   }, [query, activeTags, minMatch, format, sourceJobs, isLiveSearch, searchStatus]);
+
+  const pagedResults = useMemoH(() => {
+    const start = (localPage - 1) * LOCAL_PAGE_SIZE;
+    return results.slice(start, start + LOCAL_PAGE_SIZE);
+  }, [results, localPage]);
+
+  const totalLocalPages = Math.ceil(results.length / LOCAL_PAGE_SIZE);
 
   const handleSearch = () => {
     if (onSearch && query.trim()) {
@@ -352,16 +365,12 @@ function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave,
               <div className="empty-state-text">Try removing some filters or search the web.</div>
             </div>
           ) : (
-            <ul className="job-list">
-              {results.map((j) =>
-                <li key={j.id}>
-                  <JobCard job={j}
-                    saved={savedIds.includes(j.id)}
-                    onSave={() => onSave(j.id)}
-                    onOpen={() => onOpenJob(j)} />
-                </li>
-              )}
-            </ul>
+            <><ul className="job-list">
+                  {pagedResults.map((j) => <li key={j.id}>
+                    <JobCard job={j} saved={savedIds.includes(j.id)} onSave={() => onSave(j.id)} onOpen={() => onOpenJob(j)} />
+                  </li>
+                  )}
+                </ul><PaginationBar page={localPage} totalPages={totalLocalPages} onPage={setLocalPage} /></>
           )}
         </div>
       </div>
@@ -556,40 +565,128 @@ function ProfilePage({ user, profile, onSave, onNav, fetchWithAuth }) {
 }
 
 // ============ Saved Page ============
-function SavedPage({ user, jobs = [], savedIds, onOpenJob, onSave }) {
-  const saved = jobs.filter((j) => savedIds.includes(j.id));
-  const avgMatch = saved.length ? Math.round(saved.reduce((s, j) => s + j.match, 0) / saved.length) : 0;
-  
+function SavedPage({ user, jobs = [], savedIds, onOpenJob, onSave, fetchWithAuth }) {
+  const [savedJobs, setSavedJobs] = useStateH([]);
+  const [page, setPage] = useStateH(1);
+  const [totalCount, setTotalCount] = useStateH(0);
+  const [loading, setLoading] = useStateH(true);
+  const PAGE_SIZE = 10;
+
+  useEffectH(() => {
+    if (user.isDevMock) {
+      // dev mock: filter from jobs array
+      setSavedJobs(jobs.filter(j => savedIds.includes(j.id)));
+      setTotalCount(savedIds.length);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    fetchWithAuth(`http://localhost:8000/api/users/saved-vacancies/?page=${page}&page_size=${PAGE_SIZE}`)
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        const items = Array.isArray(data) ? data : (data.results || []);
+        // items have { id, job (job_id), title }
+        // we need to enrich with full job data from the jobs array
+        const enriched = items.map(sv => {
+          const fullJob = jobs.find(j => j.id === sv.job);
+          return fullJob || { id: sv.job, title: sv.title || 'Saved Job', company: '', match: 0, tags: [], salary: '', location: '', type: '', why: '' };
+        });
+        setSavedJobs(enriched);
+        setTotalCount(Array.isArray(data) ? data.length : (data.count || 0));
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [page, savedIds.length]); // re-fetch when page changes or saves change
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const avgMatch = savedJobs.length ? Math.round(savedJobs.reduce((s, j) => s + (j.match || 0), 0) / savedJobs.length) : 0;
+
   return (
     <div className="page-edit">
       <header className="page-head">
         <div className="col gap-4">
           <div className="eyebrow">Saved</div>
           <h1 className="page-hello">Your bookmarks.</h1>
-          {saved.length > 0 &&
+          {totalCount > 0 &&
             <div className="page-subhello">
-              {saved.length} {saved.length === 1 ? 'role' : 'roles'} saved · avg. match&nbsp;
-              <strong>{avgMatch}%</strong>. Open any to apply.
+              {totalCount} {totalCount === 1 ? 'role' : 'roles'} saved
+              {avgMatch > 0 && <> · avg. match <strong>{avgMatch}%</strong></>}. Open any to apply.
             </div>
           }
         </div>
       </header>
 
-      {saved.length === 0 ?
+      {loading ? (
+        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>Loading saved jobs...</div>
+      ) : savedJobs.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-title">Nothing here yet</div>
           <div className="empty-state-text">Bookmark any role and it will appear here.</div>
-        </div> :
-        <ul className="job-list">
-          {saved.map((j) =>
-            <li key={j.id}>
-              <JobCard job={j} saved
-                onSave={() => onSave(j.id)}
-                onOpen={() => onOpenJob(j)} />
-            </li>
+        </div>
+      ) : (
+        <>
+          <ul className="job-list">
+            {savedJobs.map((j) =>
+              <li key={j.id}>
+                <JobCard job={j} saved
+                  onSave={() => onSave(j.id)}
+                  onOpen={() => onOpenJob(j)} />
+              </li>
+            )}
+          </ul>
+          {totalPages > 1 && (
+            <PaginationBar page={page} totalPages={totalPages} onPage={setPage} />
           )}
-        </ul>
-      }
+        </>
+      )}
+    </div>
+  );
+}
+
+function PaginationBar({ page, totalPages, onPage }) {
+  if (totalPages <= 1) return null;
+  
+  const pages = [];
+  const delta = 2;
+  const left = Math.max(1, page - delta);
+  const right = Math.min(totalPages, page + delta);
+  
+  if (left > 1) { pages.push(1); if (left > 2) pages.push('...'); }
+  for (let i = left; i <= right; i++) pages.push(i);
+  if (right < totalPages) { if (right < totalPages - 1) pages.push('...'); pages.push(totalPages); }
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      gap: 6, marginTop: 32, paddingBottom: 24
+    }}>
+      <button
+        className="btn btn-ghost btn-sm"
+        disabled={page === 1}
+        onClick={() => onPage(page - 1)}
+        style={{ opacity: page === 1 ? 0.35 : 1 }}>
+        ← Prev
+      </button>
+      {pages.map((p, i) =>
+        p === '...' ? (
+          <span key={`ellipsis-${i}`} style={{ padding: '0 4px', color: 'var(--text-muted)', fontSize: 13 }}>…</span>
+        ) : (
+          <button
+            key={p}
+            className={`btn btn-sm ${p === page ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => onPage(p)}
+            style={{ minWidth: 36 }}>
+            {p}
+          </button>
+        )
+      )}
+      <button
+        className="btn btn-ghost btn-sm"
+        disabled={page === totalPages}
+        onClick={() => onPage(page + 1)}
+        style={{ opacity: page === totalPages ? 0.35 : 1 }}>
+        Next →
+      </button>
     </div>
   );
 }
