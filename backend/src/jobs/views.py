@@ -1,21 +1,26 @@
 # jobs/views.py
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
+from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
-from .models import Job
-from .serializers import JobSerializer
-from celery.result import AsyncResult
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework import status
 
 from .models import Job, SearchQueryCache
 from .serializers import JobSerializer, SearchQueryCacheSerializer
 
+
+class JobPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class JobListView(generics.ListAPIView):
     serializer_class = JobSerializer
     permission_classes = [AllowAny]
+    pagination_class = JobPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_fields = ['work_mode', 'employment_type']
     search_fields = ['title', 'company__name', 'tags']
@@ -23,14 +28,16 @@ class JobListView(generics.ListAPIView):
     def get_queryset(self):
         return Job.objects.filter(is_active=True).select_related('company', 'source')
 
+
 class JobDetailView(generics.RetrieveAPIView):
     serializer_class = JobSerializer
     permission_classes = [AllowAny]
     queryset = Job.objects.filter(is_active=True).select_related('company')
 
+
 def _get_jobs_for_query(query, work_mode=''):
     from django.db.models import Q
-    
+
     QUERY_MAP = {
         'frontend': ['frontend', 'react', 'vue', 'angular', 'javascript'],
         'backend': ['backend', 'python', 'java', 'php', 'node'],
@@ -40,23 +47,24 @@ def _get_jobs_for_query(query, work_mode=''):
         'qa': ['qa', 'tester', 'quality'],
         'mobile': ['android', 'ios', 'kotlin', 'swift', 'mobile'],
     }
-    
+
     search_terms = QUERY_MAP.get(query.lower(), [query])
-    
+
     q_filter = Q()
     for term in search_terms:
         q_filter |= Q(title__icontains=term)
         q_filter |= Q(tags__icontains=term)
         q_filter |= Q(description__icontains=term)
-    
+
     jobs_qs = Job.objects.filter(
         is_active=True
     ).filter(q_filter).select_related('company', 'source')
-    
+
     if work_mode:
         jobs_qs = jobs_qs.filter(work_mode=work_mode)
-    
-    return jobs_qs[:50]
+
+    return jobs_qs
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -70,11 +78,15 @@ def search_jobs(request):
 
     if cache_entry and cache_entry.status == 'completed' and cache_entry.is_fresh():
         jobs_qs = _get_jobs_for_query(query, work_mode)
-        serializer = JobSerializer(jobs_qs, many=True)
+        paginator = JobPagination()
+        page = paginator.paginate_queryset(jobs_qs, request)
+        serializer = JobSerializer(page, many=True)
         return Response({
             'status': 'completed',
             'source': 'cache',
-            'count': len(serializer.data),
+            'count': paginator.page.paginator.count,
+            'next': paginator.get_next_link(),
+            'previous': paginator.get_previous_link(),
             'results': serializer.data,
         })
 
@@ -114,10 +126,14 @@ def search_status(request):
     if cache_entry.status == 'completed':
         work_mode = request.query_params.get('work_mode', '')
         jobs_qs = _get_jobs_for_query(query, work_mode)
-        serializer = JobSerializer(jobs_qs, many=True)
+        paginator = JobPagination()
+        page = paginator.paginate_queryset(jobs_qs, request)
+        serializer = JobSerializer(page, many=True)
         return Response({
             'status': 'completed',
-            'count': len(serializer.data),
+            'count': paginator.page.paginator.count,
+            'next': paginator.get_next_link(),
+            'previous': paginator.get_previous_link(),
             'results': serializer.data,
         })
 

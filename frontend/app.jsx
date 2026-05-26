@@ -62,6 +62,7 @@ function App() {
   const [page, setPage] = useState('home');
   const [openJob, setOpenJob] = useState(null);
   const [toast, setToast] = useState('');
+  const [searchMeta, setSearchMeta] = useState({ count: 0, next: null, previous: null });
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   const [jobs, setJobs] = useState([]);
@@ -98,15 +99,15 @@ const [pollAttempts, setPollAttempts] = useState(0);
 const POLL_INTERVAL_MS = 4000;
 const MAX_POLLS = 30;
 
-const searchJobs = async (query, workMode = '') => {
+const searchJobs = async (query, workMode = '', page = 1) => {
   const q = query.trim().toLowerCase();
   if (!q) return;
 
   setSearchQuery(q);
   setSearchStatus('pending');
-  setSearchResults([]);
+  if (page === 1) setSearchResults([]);
 
-  const params = new URLSearchParams({ q });
+  const params = new URLSearchParams({ q, page });
   if (workMode) params.append('work_mode', workMode);
 
   try {
@@ -115,6 +116,7 @@ const searchJobs = async (query, workMode = '') => {
 
     if (data.status === 'completed') {
       setSearchResults(data.results.map(formatJob));
+      setSearchMeta({ count: data.count || 0, next: data.next, previous: data.previous });
       setSearchStatus('completed');
     } else if (data.status === 'pending') {
       pollSearchStatus(q, workMode, 0);
@@ -150,6 +152,11 @@ const pollSearchStatus = (query, workMode, attempts) => {
         const jobsData = await jobsRes.json();
 
         setSearchResults((jobsData.results || []).map(formatJob));
+        setSearchMeta({                        // ← додати
+          count: jobsData.count || 0,          // ←
+          next: jobsData.next || null,          // ←
+          previous: jobsData.previous || null,  // ←
+        });                                    // ← додати
         setSearchStatus('completed');
         setPollAttempts(0);
       } else if (data.status === 'failed') {
@@ -245,31 +252,42 @@ const formatJob = (j) => {
 
     setIsLoadingJobs(true);
     
-    fetch('http://localhost:8000/api/jobs/')
-      .then(res => {
+    const fetchAllJobs = async () => {
+      let url = 'http://localhost:8000/api/jobs/?page_size=100';
+      let allJobs = [];
+      while (url) {
+        const res = await fetch(url);
         if (!res.ok) throw new Error('Network response was not ok');
-        return res.json();
-      })
-      .then(data => {
-        setJobs(data.map(formatJob));
-      })
+        const data = await res.json();
+        // Handle both paginated ({ results, next }) and plain array responses
+        const items = Array.isArray(data) ? data : (data.results || []);
+        allJobs = [...allJobs, ...items.map(formatJob)];
+        url = Array.isArray(data) ? null : data.next;
+      }
+      return allJobs;
+    };
+
+    setIsLoadingJobs(true);
+    fetchAllJobs()
+      .then(allJobs => setJobs(allJobs))
       .catch(err => {
         console.error('Failed to fetch jobs:', err);
         setToast('Failed to load jobs from database.');
       })
-      .finally(() => {
-        setIsLoadingJobs(false);
-      });
+      .finally(() => setIsLoadingJobs(false));
+      
       
     const token = localStorage.getItem('access_token') || user.access_token || user.access;
     
     if (user && !user.isDevMock) {
-      fetchWithAuth('http://localhost:8000/api/users/saved-vacancies/')
+      fetchWithAuth('http://localhost:8000/api/users/saved-vacancies/?page_size=100')
         .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch saved vacancies'))
         .then(data => {
-          setSavedVacancies(data);
+          // Handle paginated response
+          const items = Array.isArray(data) ? data : (data.results || []);
+          setSavedVacancies(items);
         })
-        .catch(err => console.error("Помилка завантаження збережених вакансій:", err));
+        .catch(err => console.error("Error loading saved vacancies:", err));
     }
   }, [user]);
 
@@ -397,9 +415,11 @@ const formatJob = (j) => {
     onSave={toggleSave}
     onSearch={searchJobs}
     searchStatus={searchStatus}
-    searchResults={searchResults}
+    searchResults={searchResults} 
     searchQuery={searchQuery}
     pollAttempts={pollAttempts}
+    searchMeta={searchMeta}
+    onSearchPage={(page) => searchJobs(searchQuery, '', page)}
   />;
   } else if (page === 'profile') {
   content = <ProfilePage 
@@ -410,9 +430,15 @@ const formatJob = (j) => {
     onNav={setPage}
     fetchWithAuth={fetchWithAuth}  // ← додати це
   />;
-  } else if (page === 'saved') {
-    content = <SavedPage user={user} jobs={jobs} savedIds={savedIds}
-      onOpenJob={setOpenJob} onSave={toggleSave} />;
+    } else if (page === 'saved') {
+    content = <SavedPage 
+      user={user} 
+      jobs={jobs} 
+      savedIds={savedIds}
+      onOpenJob={setOpenJob} 
+      onSave={toggleSave} 
+      fetchWithAuth={fetchWithAuth} // <--- Add this line!
+    />;
   } else if (page === 'settings') {
     content = <SettingsPage user={user} theme={theme} onThemeChange={setTheme}  
       onLogout={handleLogout} />;

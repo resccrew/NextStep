@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.pagination import PageNumberPagination
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from django.contrib.auth import get_user_model
@@ -76,10 +77,15 @@ class GoogleLoginView(APIView):
         except ValueError:
             return Response({'error': 'Недійсний токен Google'}, status=status.HTTP_400_BAD_REQUEST)
 
+class SavedVacancyPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 class SavedVacancyListCreateView(generics.ListCreateAPIView):
     serializer_class = SavedVacancySerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = SavedVacancyPagination
 
     def get_queryset(self):
         return self.request.user.saved_vacancies.all()
