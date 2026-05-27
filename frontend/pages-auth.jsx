@@ -65,7 +65,7 @@ function LoginPage({ onLogin }) {
     const endpoint = mode === 'signin' ? '/login/' : '/register/';
 
     const payload = mode === 'signin'
-    ? { email: email, password: password } // <-- Changed 'username' to 'email'
+    ? { email: email, password: password }
     : {
         username: name || email.split('@')[0],
         email: email,

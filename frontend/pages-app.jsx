@@ -145,13 +145,39 @@ function HomePage({ user, profile, jobs = [], onOpenJob, savedIds, onSave, onNav
 
 // ============ Search Page ============
 function SearchPage({ user, userId, profile, jobs = [], onOpenJob, savedIds, onSave,
-  onSearch, searchStatus, searchResults, searchQuery, pollAttempts,
-  searchMeta, onSearchPage, profileFilters, onSavePreference }) {
+  onSearch, searchStatus, searchResults, searchQuery, pollAttempts, searchMeta,
+  onSearchPage, profileFilters, onSavePreference }) {
 
-  const [query, setQuery] = useStateH('');
-  const [minMatch, setMinMatch] = useStateH(0);
-  const [activeTags, setActiveTags] = useStateH([]);
-  const [format, setFormat] = useStateH('all');
+  const [query, setQuery] = useStateH(profileFilters?.role || '');
+  const [minMatch, setMinMatch] = useStateH(profileFilters?.searchPreference?.min_match || 0);
+  const [activeTags, setActiveTags] = useStateH(
+  profileFilters?.searchPreference?.active_tags || profileFilters?.skills || []);
+  const [format, setFormat] = useStateH(
+    profileFilters?.searchPreference?.format || 
+    (profileFilters?.formats?.length ? profileFilters.formats[0] : 'all')
+  );
+  useEffectH(() => {
+    if (!userId) {
+      setQuery('');
+      setMinMatch(0);
+      setActiveTags([]);
+      setFormat('all');
+      return;
+    }
+
+    const pref = profileFilters?.searchPreference;
+    setQuery(pref?.query || profileFilters?.role || '');
+    setMinMatch(pref?.min_match || 0);
+    setActiveTags(pref?.active_tags || profileFilters?.skills || []);
+    setFormat(pref?.format || (profileFilters?.formats?.[0]) || 'all');
+
+  }, [userId]);
+
+  useEffectH(() => {
+    if (onSavePreference && userId) {
+      onSavePreference({ query, active_tags: activeTags, format, min_match: minMatch });
+    }
+  }, [query, minMatch, activeTags, format]);
   const [useAI, setUseAI] = useStateH(true);
   const [localPage, setLocalPage] = useStateH(1);
   const LOCAL_PAGE_SIZE = 10;
@@ -187,7 +213,18 @@ function SearchPage({ user, userId, profile, jobs = [], onOpenJob, savedIds, onS
   const isLiveSearch = searchStatus !== 'idle' && searchQuery === query.trim().toLowerCase();
   const sourceJobs = isLiveSearch && searchStatus === 'completed' ? searchResults : jobs;
   useEffectH(() => { setLocalPage(1); }, [query, activeTags, minMatch, format]);
-
+  useEffectH(() => {
+  if (profileFilters?.role && searchStatus === 'idle') {
+    setQuery(profileFilters.role);
+    setActiveTags(profileFilters.skills || []);
+    if (profileFilters.formats?.length) {
+      setFormat(profileFilters.formats[0]);
+    }
+    if (onSearch) {
+      onSearch(profileFilters.role, profileFilters.formats?.includes('remote') ? 'remote' : '');
+    }
+  }
+}, [profileFilters]);
   const allTags = useMemoH(() => {
     const t = new Set();
     sourceJobs.forEach((j) => j.tags.forEach((x) => t.add(x)));
@@ -213,6 +250,13 @@ function SearchPage({ user, userId, profile, jobs = [], onOpenJob, savedIds, onS
     if (activeTags.length) r = r.filter((j) => activeTags.some((t) => j.tags.includes(t)));
     if (format !== 'all') r = r.filter((j) => j.location.toLowerCase().includes(format));
     r = r.filter((j) => j.match >= minMatch);
+    if (profileFilters?.salary) {
+      r = r.filter(j => {
+        if (!j.salary || j.salary === 'Negotiable') return true;
+        const num = parseInt(j.salary.replace(/\D/g, ''));
+        return isNaN(num) || num >= profileFilters.salary * 10;
+      });
+    }
     r.sort((a, b) => b.match - a.match);
     return r;
   }, [query, activeTags, minMatch, format, sourceJobs, isLiveSearch, searchStatus]);

@@ -1,12 +1,11 @@
-# jobs/tasks.py
 import hashlib
 import random
 import time
-from celery import shared_task
+from celery import shared_task, chain
 from django.utils import timezone
 
 from .models import Job, Company, ScrapingSource, SearchQueryCache
-
+from .theprotocol_scraper import scrape_protocol_keywords, save_to_db as save_protocol_to_db
 
 PRACA_PL_SEARCH_URL = "https://www.praca.pl/oferty-pracy.html?q={query}"
 PRACA_PL_SEARCH_PAGES = [
@@ -15,6 +14,16 @@ PRACA_PL_SEARCH_PAGES = [
     "https://www.praca.pl/oferty-pracy_3.html?q={query}",
 ]
 
+@shared_task
+def scrape_theprotocol_task(keywords):
+    print(f"[THEPROTOCOL] Starting Celery task for keywords: {keywords}")
+    jobs_data = scrape_protocol_keywords(keywords, remote_only=False)
+    
+    if jobs_data:
+        saved_count = save_protocol_to_db(jobs_data)
+        return f"[THEPROTOCOL] Saved {saved_count} new jobs out of {len(jobs_data)} scraped."
+    
+    return "[THEPROTOCOL] No jobs found or scraped."
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def scrape_keyword(self, keywords):
@@ -101,3 +110,16 @@ def scrape_keyword(self, keywords):
             cache_entry.status = 'failed'
             cache_entry.save(update_fields=['status', 'updated_at'])
             raise self.retry(exc=exc)
+        
+
+@shared_task
+def scrape_all_sources_sequential_task(keywords):
+    print(f"[ORCHESTRATOR] Starting sequential scraping for: {keywords}")
+    sequential_chain = chain(
+        scrape_theprotocol_task.si(keywords),
+        scrape_keyword.si(keywords)
+    )
+    
+    sequential_chain.delay()
+    
+    return "[ORCHESTRATOR] Chain triggered successfully."

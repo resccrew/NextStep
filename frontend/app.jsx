@@ -51,6 +51,7 @@ function DevJump({ onLogin, onJump }) {
 
 function App() {
   const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [profile, setProfile] = useState({
     role: '',
     skills: [],
@@ -262,24 +263,28 @@ const formatJob = (j) => {
 };
 
   const handleLogout = () => {
-  setUser(null);
-  setPage('home');
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('nextstep_user');
+    setUser(null);
+    setPage('home');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    
+    setSearchQuery('');
+    setSearchStatus('idle');
+    setSearchResults([]);
+    setSearchMeta({ count: 0, next: null, previous: null });
+    setPollAttempts(0);
+    
+    setProfile({
+      role: '',
+      skills: [],
+      experience: 'middle',
+      formats: ['remote'],
+      salary: 200,
+      onboardingDone: false
+    });
 
-  setSearchQuery('');
-  setSearchStatus('idle');
-  setSearchResults([]);
-  setSearchMeta({ count: 0, next: null, previous: null });
-  setPollAttempts(0);
-  setProfile({
-    role: '', skills: [], experience: 'middle',
-    formats: ['remote'], salary: 200, onboardingDone: false
-  });
-
-  setToast('Successfully signed out.');
-};
+    setToast('Successfully signed out.');
+  };
 
   const fetchWithAuth = async (url, options = {}) => {
     let accessToken = localStorage.getItem('access_token') || (user && (user.access_token || user.access));
@@ -390,6 +395,21 @@ const formatJob = (j) => {
 
     setNeedsOnboarding(!userData.onboarding_done && !userData.isDevMock);
   };
+
+  const saveSearchPreference = useMemo(() => {
+  let timer;
+  return (data) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      if (!user || user.isDevMock) return;
+      fetchWithAuth('http://localhost:8000/api/users/search-preference/', {
+        method: 'PATCH',
+        body: JSON.stringify(data)
+      }).catch(err => console.error('Failed to save search preference:', err));
+    }, 1000);
+  };
+}, [user]);
+
   const handleSaveOnboarding = (p) => {
     setProfile(prev => ({ ...prev, ...p }));
     setNeedsOnboarding(false);

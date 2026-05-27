@@ -58,7 +58,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         }
         return data
 
-
 class SearchPreferenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = SearchPreference
