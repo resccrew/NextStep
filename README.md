@@ -195,6 +195,76 @@ frontend, backend, fullstack, php, data
 
 ---
 
+### Jak działa autoryzacja przez Google
+
+NextStep obsługuje logowanie przez Google OAuth 2.0. Użytkownik nie musi tworzyć hasła — wystarczy konto Google.
+
+#### Krok 1 — Google Identity Services na frontendzie
+
+Na stronie logowania ładowana jest biblioteka Google Identity Services (`accounts.google.id`). Przy wejściu na stronę inicjalizuje się przycisk "Sign in with Google":
+
+```js
+window.google.accounts.id.initialize({
+  client_id: GOOGLE_CLIENT_ID,
+  callback: handleGoogleResponse
+});
+window.google.accounts.id.renderButton(
+  document.getElementById("google-btn-div"),
+  { theme: "outline", size: "large", width: 400 }
+);
+```
+
+Użytkownik klika przycisk → Google otwiera popup z wyborem konta → po wybraniu konta Google zwraca **JWT credential token** (id_token) podpisany przez Google.
+
+#### Krok 2 — Weryfikacja tokenu na backendzie
+
+Frontend wysyła id_token do backendu:
+
+```
+POST /api/users/google/
+{ "token": "<id_token od Google>" }
+```
+
+Backend weryfikuje token biblioteką `google-auth`:
+
+```python
+idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), CLIENT_ID)
+email = idinfo['email']
+first_name = idinfo.get('given_name', '')
+last_name = idinfo.get('family_name', '')
+```
+
+`verify_oauth2_token` sprawdza podpis kryptograficzny Google, datę wygaśnięcia i `CLIENT_ID` — jeśli cokolwiek się nie zgadza, rzuca `ValueError` i zwracamy `400 Bad Request`.
+
+#### Krok 3 — Tworzenie lub wyszukiwanie użytkownika
+
+```
+Token ważny → backend sprawdza, czy user z tym emailem już istnieje
+       ↓
+Istnieje → używamy go
+       ↓
+Nie istnieje → tworzymy nowe konto (username z prefixu email, set_unusable_password)
+       ↓
+Generujemy JWT (access + refresh) i zwracamy dane użytkownika
+```
+
+Nowy użytkownik stworzony przez Google **nie ma hasła** — `set_unusable_password()` blokuje logowanie przez klasyczny formularz email/hasło. Konto można obsługiwać wyłącznie przez Google.
+
+Przy kolejnym logowaniu przez Google token znowu trafia do `verify_oauth2_token` — jeśli email już jest w bazie, użytkownik po prostu dostaje nowe tokeny JWT.
+
+#### Krok 4 — Frontend przechowuje tokeny
+
+Po odpowiedzi `200 OK`:
+
+```js
+localStorage.setItem('access_token', data.access);
+localStorage.setItem('refresh_token', data.refresh);
+```
+
+Od tej chwili wszystkie zapytania do API lecą z nagłówkiem `Authorization: Bearer <access_token>` — tak samo jak przy logowaniu przez email.
+
+---
+
 ### Stos technologiczny
 
 | Warstwa | Technologia | Po co |
