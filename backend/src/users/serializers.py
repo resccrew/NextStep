@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from users.models import SavedVacancy, User, UserProfile
+from users.models import SavedVacancy, SearchPreference, User, UserProfile
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
@@ -40,6 +40,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         profile = getattr(user, 'profile', None)
         saved_vacancies = SavedVacancySerializer(user.saved_vacancies.all(), many=True).data
 
+        search_pref = getattr(user, 'search_preference', None)
+
         data['user'] = {
             'id': user.id,
             'username': user.username,
@@ -52,8 +54,16 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'salary': profile.salary if profile else None,
             'theme': profile.theme if profile else 'dark',
             'saved_vacancies': saved_vacancies,
+            'search_preference': SearchPreferenceSerializer(search_pref).data if search_pref else None,
         }
         return data
+
+
+class SearchPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SearchPreference
+        fields = ['query', 'active_tags', 'format', 'min_match', 'updated_at']
+        read_only_fields = ['updated_at']
 
 class CVSerializer(serializers.ModelSerializer):
     class Meta:

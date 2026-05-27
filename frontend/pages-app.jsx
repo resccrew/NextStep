@@ -144,20 +144,46 @@ function HomePage({ user, profile, jobs = [], onOpenJob, savedIds, onSave, onNav
 }
 
 // ============ Search Page ============
-function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave,
-  onSearch, searchStatus, searchResults, searchQuery, pollAttempts }) {
+function SearchPage({ user, userId, profile, jobs = [], onOpenJob, savedIds, onSave,
+  onSearch, searchStatus, searchResults, searchQuery, pollAttempts,
+  searchMeta, onSearchPage, profileFilters, onSavePreference }) {
 
   const [query, setQuery] = useStateH('');
   const [minMatch, setMinMatch] = useStateH(0);
   const [activeTags, setActiveTags] = useStateH([]);
   const [format, setFormat] = useStateH('all');
   const [useAI, setUseAI] = useStateH(true);
-  const [searchPage, setSearchPage] = useStateH(1);
-  const [searchTotalCount, setSearchTotalCount] = useStateH(0);
-  const PAGE_SIZE = 10;
   const [localPage, setLocalPage] = useStateH(1);
   const LOCAL_PAGE_SIZE = 10;
-  const [searchMeta, setSearchMeta] = useState({ count: 0, page: 1 });
+  useEffectH(() => {
+    if (!userId) {
+      setQuery('');
+      setMinMatch(0);
+      setActiveTags([]);
+      setFormat('all');
+      return;
+    }
+
+    const pref = profileFilters?.searchPreference;
+
+    setQuery(pref?.query || profileFilters?.role || '');
+    setMinMatch(pref?.min_match || 0);
+    setActiveTags(pref?.active_tags || profileFilters?.skills || []);
+    setFormat(pref?.format || (profileFilters?.formats?.[0]) || 'all');
+
+  }, [userId]);
+
+  useEffectH(() => {
+    if (onSavePreference && userId) {
+      onSavePreference({
+        query,
+        active_tags: activeTags,
+        format,
+        min_match: minMatch
+      });
+    }
+  }, [query, minMatch, activeTags, format]);
+
   const isLiveSearch = searchStatus !== 'idle' && searchQuery === query.trim().toLowerCase();
   const sourceJobs = isLiveSearch && searchStatus === 'completed' ? searchResults : jobs;
   useEffectH(() => { setLocalPage(1); }, [query, activeTags, minMatch, format]);
@@ -256,7 +282,6 @@ function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave,
         </div>
       </div>
 
-      {/* Статус-банер */}
       {isLiveSearch && searchStatus === 'pending' && (
         <div style={{
           padding: '14px 20px', borderRadius: 12, marginBottom: 16,
@@ -388,7 +413,6 @@ function ProfilePage({ user, profile, onSave, onNav, fetchWithAuth }) {
   const EXP_LABEL = { junior: 'Junior', middle: 'Mid-level', senior: 'Senior', lead: 'Lead / Expert' };
   const FORMAT_LABEL = { remote: 'Remote', hybrid: 'Hybrid', office: 'Office', relocation: 'Open to relocation' };
 
-  // Завантажуємо актуальні дані профілю з сервера при монтуванні
   useEffectH(() => {
     if (user.isDevMock) {
       setServerProfile(profile);
@@ -412,12 +436,11 @@ function ProfilePage({ user, profile, onSave, onNav, fetchWithAuth }) {
     serverProfile.experience && 
     serverProfile.formats?.length;
 
-  // Визначаємо прогрес якщо не завершено
   const getProgress = () => {
   if (!serverProfile) return 1;
-  if (!serverProfile.role) return 1;                          // крок 1: роль не заповнена
-  if (!serverProfile.skills?.length || serverProfile.skills.length < 3) return 2;  // крок 2: скіли не заповнені
-  return 3;                                                   // крок 3: преференції
+  if (!serverProfile.role) return 1;
+  if (!serverProfile.skills?.length || serverProfile.skills.length < 3) return 2;
+  return 3;
 };
 
   if (loading) {
@@ -430,7 +453,6 @@ function ProfilePage({ user, profile, onSave, onNav, fetchWithAuth }) {
     );
   }
 
-  // Режим перегляду завершеного профілю
   if (isComplete && !editing) {
     return (
       <div className="profile-edit">
@@ -460,7 +482,6 @@ function ProfilePage({ user, profile, onSave, onNav, fetchWithAuth }) {
           </div>
         </section>
 
-        {/* Картки з даними */}
         <div className="col gap-16" style={{ marginTop: 24 }}>
           
           <div className="stat" style={{ padding: '20px 24px', borderRadius: 16 }}>
@@ -501,7 +522,6 @@ function ProfilePage({ user, profile, onSave, onNav, fetchWithAuth }) {
     );
   }
 
-  // Режим редагування / неповного профілю
   return (
     <div className="profile-edit">
       <header className="page-head">
@@ -543,11 +563,11 @@ function ProfilePage({ user, profile, onSave, onNav, fetchWithAuth }) {
       </section>
 
       <section className="profile-form">
-        {!loading && (  // ← додай цю перевірку
+        {!loading && (
           <OnboardingPage
             profile={serverProfile || profile}
             embedded
-            initialStep={getProgress()}   // ← без + 1, бо тепер повертає 1/2/3
+            initialStep={getProgress()}
             onSave={(p) => {
               setServerProfile(prev => ({ ...prev, ...p }));
               onSave(p);
@@ -574,7 +594,6 @@ function SavedPage({ user, jobs = [], savedIds, onOpenJob, onSave, fetchWithAuth
 
   useEffectH(() => {
     if (user.isDevMock) {
-      // dev mock: filter from jobs array
       setSavedJobs(jobs.filter(j => savedIds.includes(j.id)));
       setTotalCount(savedIds.length);
       setLoading(false);
@@ -585,8 +604,6 @@ function SavedPage({ user, jobs = [], savedIds, onOpenJob, onSave, fetchWithAuth
       .then(res => res.ok ? res.json() : Promise.reject())
       .then(data => {
         const items = Array.isArray(data) ? data : (data.results || []);
-        // items have { id, job (job_id), title }
-        // we need to enrich with full job data from the jobs array
         const enriched = items.map(sv => {
           const fullJob = jobs.find(j => j.id === sv.job);
           return fullJob || { id: sv.job, title: sv.title || 'Saved Job', company: '', match: 0, tags: [], salary: '', location: '', type: '', why: '' };
@@ -596,7 +613,7 @@ function SavedPage({ user, jobs = [], savedIds, onOpenJob, onSave, fetchWithAuth
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [page, savedIds.length]); // re-fetch when page changes or saves change
+  }, [page, savedIds.length]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
   const avgMatch = savedJobs.length ? Math.round(savedJobs.reduce((s, j) => s + (j.match || 0), 0) / savedJobs.length) : 0;
@@ -735,7 +752,6 @@ function SettingsPage({ user, theme, onThemeChange, onLogout }) {
       const data = await res.json();
 
       if (!res.ok) {
-        // Витягуємо помилку з бекенду (наприклад, якщо старий пароль неправильний)
         const errorMsg = data.old_password?.[0] || data.new_password?.[0] || 'Failed to change password.';
         throw new Error(errorMsg);
       }

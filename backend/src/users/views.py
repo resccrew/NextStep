@@ -11,10 +11,10 @@ from google.auth.transport import requests as google_requests
 from django.contrib.auth import get_user_model
 from dotenv import load_dotenv
 
-from users.models import SavedVacancy, UserProfile
+from users.models import SavedVacancy, SearchPreference, UserProfile
 from .serializers import (
     OnboardingSerializer, RegisterSerializer, CustomTokenObtainPairSerializer,
-    CVSerializer, SavedVacancySerializer, SettingsSerializer, ChangePasswordSerializer
+    CVSerializer, SavedVacancySerializer, SearchPreferenceSerializer, SettingsSerializer, ChangePasswordSerializer
 )
 
 load_dotenv()
@@ -55,7 +55,7 @@ class GoogleLoginView(APIView):
             refresh = RefreshToken.for_user(user)
             profile = getattr(user, 'profile', None)
             saved_vacancies = SavedVacancySerializer(user.saved_vacancies.all(), many=True).data
-
+            search_pref = getattr(user, 'search_preference', None)
             return Response({
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
@@ -71,6 +71,7 @@ class GoogleLoginView(APIView):
                     'formats': profile.formats if profile else [],
                     'salary': profile.salary if profile else None,
                     'saved_vacancies': saved_vacancies,
+                    'search_preference': SearchPreferenceSerializer(search_pref).data if search_pref else None,
                 }
             }, status=status.HTTP_200_OK)
 
@@ -93,6 +94,15 @@ class SavedVacancyListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+class SearchPreferenceView(generics.RetrieveUpdateAPIView):
+    serializer_class = SearchPreferenceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        pref, _ = SearchPreference.objects.get_or_create(
+            user=self.request.user
+        )
+        return pref
 
 class SavedVacancyDestroyView(generics.DestroyAPIView):
     serializer_class = SavedVacancySerializer

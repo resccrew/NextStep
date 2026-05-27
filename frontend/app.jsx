@@ -1,5 +1,5 @@
 /* global React, ReactDOM, LoginPage, OnboardingPage, HomePage, SearchPage, ProfilePage, SavedPage, Sidebar, JobDetail, Toast, JOBS */
-const { useState, useEffect, useMemo } = React;
+const { useState, useEffect, useMemo, useCallback } = React;
 
 function DevJump({ onLogin, onJump }) {
   const [open, setOpen] = useState(false);
@@ -59,6 +59,7 @@ function App() {
     salary: 200,
     onboardingDone: false
   });
+  const [authLoading, setAuthLoading] = useState(true);
   const [page, setPage] = useState('home');
   const [openJob, setOpenJob] = useState(null);
   const [toast, setToast] = useState('');
@@ -73,6 +74,69 @@ function App() {
   const [theme, setTheme] = useState(() => {
   return user?.theme || localStorage.getItem('theme') || 'dark';
   });
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    const refresh = localStorage.getItem('refresh_token');
+    
+    if (!token && !refresh) {
+      setAuthLoading(false);
+      return;
+    }
+
+    fetch('http://127.0.0.1:8000/api/users/onboarding/', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(async res => {
+      if (res.ok) return res.json();
+      
+      // Токен протух — спробувати refresh
+      if (res.status === 401 && refresh) {
+        const refreshRes = await fetch('http://localhost:8000/api/users/token/refresh/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh })
+        });
+        
+        if (refreshRes.ok) {
+          const refreshData = await refreshRes.json();
+          localStorage.setItem('access_token', refreshData.access);
+          
+          return fetch('http://127.0.0.1:8000/api/users/onboarding/', {
+            headers: { 'Authorization': `Bearer ${refreshData.access}` }
+          }).then(r => r.ok ? r.json() : Promise.reject('failed'));
+        }
+      }
+      return Promise.reject('no valid token');
+    })
+    .then(profileData => {
+      const savedUser = JSON.parse(localStorage.getItem('nextstep_user') || 'null');
+      
+      if (!savedUser) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        return;
+      }
+      setUser(savedUser);
+      setProfile(prev => ({ ...prev, ...profileData }));
+
+      if (savedUser.theme) setTheme(savedUser.theme);
+
+      if (savedUser.search_preference) {
+        const pref = savedUser.search_preference;
+        setSearchQuery(pref.query || '');
+        setProfile(prev => ({ ...prev, searchPreference: pref }));
+      }
+
+      setNeedsOnboarding(!savedUser.onboarding_done);
+    })
+    .catch(() => {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('nextstep_user');
+    })
+    .finally(() => setAuthLoading(false));
+  }, []);
 
   useEffect(() => {
   document.documentElement.setAttribute('data-theme', theme);
@@ -152,11 +216,11 @@ const pollSearchStatus = (query, workMode, attempts) => {
         const jobsData = await jobsRes.json();
 
         setSearchResults((jobsData.results || []).map(formatJob));
-        setSearchMeta({                        // ← додати
-          count: jobsData.count || 0,          // ←
-          next: jobsData.next || null,          // ←
-          previous: jobsData.previous || null,  // ←
-        });                                    // ← додати
+        setSearchMeta({
+          count: jobsData.count || 0,
+          next: jobsData.next || null,
+          previous: jobsData.previous || null,
+        });
         setSearchStatus('completed');
         setPollAttempts(0);
       } else if (data.status === 'failed') {
@@ -198,12 +262,24 @@ const formatJob = (j) => {
 };
 
   const handleLogout = () => {
-    setUser(null);
-    setPage('home');
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    setToast('Successfully signed out.');
-  };
+  setUser(null);
+  setPage('home');
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('nextstep_user');
+
+  setSearchQuery('');
+  setSearchStatus('idle');
+  setSearchResults([]);
+  setSearchMeta({ count: 0, next: null, previous: null });
+  setPollAttempts(0);
+  setProfile({
+    role: '', skills: [], experience: 'middle',
+    formats: ['remote'], salary: 200, onboardingDone: false
+  });
+
+  setToast('Successfully signed out.');
+};
 
   const fetchWithAuth = async (url, options = {}) => {
     let accessToken = localStorage.getItem('access_token') || (user && (user.access_token || user.access));
@@ -228,15 +304,19 @@ const formatJob = (j) => {
           if (refreshRes.ok) {
             const data = await refreshRes.json();
             localStorage.setItem('access_token', data.access);
+            const savedUser = JSON.parse(localStorage.getItem('nextstep_user') || '{}');
+            localStorage.setItem('nextstep_user', JSON.stringify({ ...savedUser, access: data.access }));
+            
             headers['Authorization'] = `Bearer ${data.access}`;
             response = await fetch(url, { ...options, headers });
           } else {
             handleLogout();
           }
         } catch (error) {
-          handleLogout();
+          console.error('Token refresh failed:', error);
         }
-      } else {
+      }
+      else {
         handleLogout();
       }
     }
@@ -259,7 +339,6 @@ const formatJob = (j) => {
         const res = await fetch(url);
         if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
-        // Handle both paginated ({ results, next }) and plain array responses
         const items = Array.isArray(data) ? data : (data.results || []);
         allJobs = [...allJobs, ...items.map(formatJob)];
         url = Array.isArray(data) ? null : data.next;
@@ -283,7 +362,6 @@ const formatJob = (j) => {
       fetchWithAuth('http://localhost:8000/api/users/saved-vacancies/?page_size=100')
         .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch saved vacancies'))
         .then(data => {
-          // Handle paginated response
           const items = Array.isArray(data) ? data : (data.results || []);
           setSavedVacancies(items);
         })
@@ -293,29 +371,46 @@ const formatJob = (j) => {
 
   const handleLogin = (u) => {
     const userData = u.user ? { ...u.user, access: u.access } : u;
-    
+
     if (u.access) localStorage.setItem('access_token', u.access);
     if (u.refresh) localStorage.setItem('refresh_token', u.refresh);
+    
+    localStorage.setItem('nextstep_user', JSON.stringify(userData));
 
     setUser({ ...userData, title: userData.role || userData.title || '' });
-    
-    if (userData.saved_vacancies) {
-      setSavedVacancies(userData.saved_vacancies);
-    }
-    
-    if (userData.theme) {
-      setTheme(userData.theme);
+
+    if (userData.saved_vacancies) setSavedVacancies(userData.saved_vacancies);
+    if (userData.theme) setTheme(userData.theme);
+
+    if (userData.search_preference) {
+      const pref = userData.search_preference;
+      setSearchQuery(pref.query || '');
+      setProfile(prev => ({ ...prev, searchPreference: pref }));
     }
 
     setNeedsOnboarding(!userData.onboarding_done && !userData.isDevMock);
   };
-
   const handleSaveOnboarding = (p) => {
     setProfile(prev => ({ ...prev, ...p }));
     setNeedsOnboarding(false);
-    setPage('home');
+    setPage('search');
     setToast('Profile saved. Feed updated.');
+    if (p.role) {
+      searchJobs(p.role, p.formats?.includes('remote') ? 'remote' : '');
+    }
   };
+
+  const saveSearchPreference = useCallback((data) => {
+    if (!user || user.isDevMock) return;
+    
+    clearTimeout(saveSearchPreference._timer);
+    saveSearchPreference._timer = setTimeout(() => {
+      fetchWithAuth('http://localhost:8000/api/users/search-preference/', {
+        method: 'PATCH',
+        body: JSON.stringify(data)
+      }).catch(err => console.error('Failed to save search preference:', err));
+    }, 1000);
+  }, [user]);
 
   const toggleSave = (jobId) => {
     const existingSave = savedVacancies.find(sv => sv.job === jobId);
@@ -377,6 +472,19 @@ const formatJob = (j) => {
     setPage(target);
   };
 
+  if (authLoading) {
+    return (
+      <div style={{
+        minHeight: '100vh', display: 'flex', 
+        alignItems: 'center', justifyContent: 'center',
+        background: 'var(--bg)', color: 'var(--text-muted)',
+        fontSize: 14
+      }}>
+        Loading...
+      </div>
+    );
+  }
+
   if (!user) {
     return (
       <>
@@ -408,6 +516,7 @@ const formatJob = (j) => {
   } else if (page === 'search') {
   content = <SearchPage
     user={user}
+    userId={user?.id}
     profile={profile}
     jobs={jobs}
     onOpenJob={setOpenJob}
@@ -420,6 +529,8 @@ const formatJob = (j) => {
     pollAttempts={pollAttempts}
     searchMeta={searchMeta}
     onSearchPage={(page) => searchJobs(searchQuery, '', page)}
+    profileFilters={{ ...profile }}
+    onSavePreference={saveSearchPreference}
   />;
   } else if (page === 'profile') {
   content = <ProfilePage 
@@ -428,7 +539,7 @@ const formatJob = (j) => {
     jobs={jobs}
     onSave={(p) => { setProfile(prev => ({...prev, ...p})); setToast('Profile updated.'); }}
     onNav={setPage}
-    fetchWithAuth={fetchWithAuth}  // ← додати це
+    fetchWithAuth={fetchWithAuth}
   />;
     } else if (page === 'saved') {
     content = <SavedPage 
@@ -437,7 +548,7 @@ const formatJob = (j) => {
       savedIds={savedIds}
       onOpenJob={setOpenJob} 
       onSave={toggleSave} 
-      fetchWithAuth={fetchWithAuth} // <--- Add this line!
+      fetchWithAuth={fetchWithAuth}
     />;
   } else if (page === 'settings') {
     content = <SettingsPage user={user} theme={theme} onThemeChange={setTheme}  
