@@ -240,9 +240,12 @@ const pollSearchStatus = (query, workMode, attempts) => {
 const formatJob = (j) => {
   const tags = j.tags || [];
   const matchScore = Math.floor(Math.random() * (98 - 65 + 1)) + 65;
+  const sourceName = j.source_name || 'job board';
+  
   const why = tags.length
-    ? `Matched from ${j.source_name || 'job board'} listings. Tags overlap with your profile: ${tags.slice(0, 3).join(', ')}.`
+    ? `Matched from ${sourceName} listings. Tags overlap with your profile: ${tags.slice(0, 3).join(', ')}.`
     : 'Strong match based on your profile and experience level.';
+    
   return {
     id: j.id,
     title: j.title,
@@ -254,6 +257,7 @@ const formatJob = (j) => {
     tags,
     description: j.description || '',
     url: j.original_url || j.url,
+    sourceName: sourceName,
     posted: 'Recently',
     match: matchScore,
     why,

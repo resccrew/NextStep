@@ -226,10 +226,10 @@ function SearchPage({ user, userId, profile, jobs = [], onOpenJob, savedIds, onS
   }
 }, [profileFilters]);
   const allTags = useMemoH(() => {
-    const t = new Set();
-    sourceJobs.forEach((j) => j.tags.forEach((x) => t.add(x)));
-    return [...t];
-  }, [sourceJobs]);
+    const t = new Set(activeTags);
+    sourceJobs.forEach((j) => j.tags.forEach((x) => t.add(x)));
+    return [...t];
+  }, [sourceJobs, activeTags]);
 
   const toggleTag = (t) => setActiveTags((prev) =>
     prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
