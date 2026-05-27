@@ -152,12 +152,11 @@ function JobDetail({ job, onClose, saved, onSave }) {
       padding: 24, backdropFilter: 'blur(4px)'
     }} onClick={onClose}>
       
-      {/* Головний контейнер модалки */}
       <div 
         className="job-modal" 
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: '#1C1C1C', // Темно-сірий фон як на скріні
+          background: '#1C1C1C',
           border: '1px solid #333',
           borderRadius: 16,
           padding: 32,
@@ -167,7 +166,6 @@ function JobDetail({ job, onClose, saved, onSave }) {
           fontFamily: 'system-ui, -apple-system, sans-serif'
         }}
       >
-        {/* Хедер модалки */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, flex: 1 }}>
             <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', color: '#888', textTransform: 'uppercase' }}>
@@ -190,7 +188,6 @@ function JobDetail({ job, onClose, saved, onSave }) {
           </button>
         </div>
 
-        {/* Блок Why this match */}
         <div style={{
           marginTop: 24, padding: 16, background: '#262626', 
           border: '1px solid #333', borderRadius: 8,
@@ -204,7 +201,6 @@ function JobDetail({ job, onClose, saved, onSave }) {
           </span>
         </div>
 
-        {/* Статистика (Salary, Format, Posted) */}
         <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
           {[
             { label: 'Salary', value: job.salary || 'Negotiable' },
@@ -222,7 +218,6 @@ function JobDetail({ job, onClose, saved, onSave }) {
           ))}
         </div>
 
-        {/* About the role */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 24 }}>
           <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', color: '#888', textTransform: 'uppercase' }}>
             About the role
@@ -232,7 +227,6 @@ function JobDetail({ job, onClose, saved, onSave }) {
           </div>
         </div>
 
-        {/* Key skills */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
           <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', color: '#888', textTransform: 'uppercase' }}>
             Key skills
@@ -250,10 +244,9 @@ function JobDetail({ job, onClose, saved, onSave }) {
           </div>
         </div>
 
-        {/* --- AI Block --- */}
         <div style={{
           marginTop: 24, padding: '16px 20px',
-          background: '#1A2A20', // Більш точний темний зелений фон
+          background: '#1A2A20',
           border: '1px solid #233A2B',
           borderRadius: 12,
           display: 'flex', gap: 12, alignItems: 'flex-start',
@@ -272,7 +265,6 @@ function JobDetail({ job, onClose, saved, onSave }) {
           </div>
         </div>
 
-        {/* Футер з кнопками */}
         <div style={{ display: 'flex', gap: 12, marginTop: 32, justifyContent: 'flex-end', alignItems: 'center' }}>
           <button 
             onClick={onSave}
