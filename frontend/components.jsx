@@ -135,78 +135,173 @@ function JobCard({ job, saved, onSave, onOpen }) {
 // ============ Job Detail Modal ============
 function JobDetail({ job, onClose, saved, onSave }) {
   if (!job) return null;
+
+  const getDomainName = (url) => {
+    try {
+      const domain = new URL(url).hostname;
+      return domain.replace('www.', '');
+    } catch (e) {
+      return 'website';
+    }
+  };
+
   return (
     <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(16,21,18,0.36)',
+      position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.6)',
       zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 24, backdropFilter: 'blur(2px)'
+      padding: 24, backdropFilter: 'blur(4px)'
     }} onClick={onClose}>
-      <div className="job-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
-          <div className="col gap-6" style={{ minWidth: 0, flex: 1 }}>
-            <div className="eyebrow">{job.match}% match</div>
-            <div className="job-modal-title">{job.title}</div>
-            <div className="muted" style={{ fontSize: 14 }}>{job.company} · {job.location}</div>
+      
+      {/* Головний контейнер модалки */}
+      <div 
+        className="job-modal" 
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: '#1C1C1C', // Темно-сірий фон як на скріні
+          border: '1px solid #333',
+          borderRadius: 16,
+          padding: 32,
+          width: '100%',
+          maxWidth: 640,
+          color: '#E0E0E0',
+          fontFamily: 'system-ui, -apple-system, sans-serif'
+        }}
+      >
+        {/* Хедер модалки */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', color: '#888', textTransform: 'uppercase' }}>
+              {job.match}% match
+            </div>
+            <h2 style={{ fontSize: 24, fontWeight: 500, color: '#FFF', margin: 0, lineHeight: 1.2 }}>
+              {job.title}
+            </h2>
+            <div style={{ fontSize: 14, color: '#A0A0A0' }}>
+              {job.company} · {job.location} · {job.type}
+            </div>
           </div>
-          <button className="btn btn-ghost btn-sm" onClick={onClose} style={{ flexShrink: 0 }}><Icon.X /></button>
+          <button 
+            onClick={onClose} 
+            style={{ 
+              background: 'transparent', border: 'none', color: '#888', cursor: 'pointer', padding: 4 
+            }}
+          >
+            <Icon.X size={20} />
+          </button>
         </div>
 
-        <div className="job-modal-why">
-          <span className="eyebrow">Why this match</span>
-          <span style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.5 }}>{job.why}</span>
-        </div>
-
-        <div className="row gap-12" style={{ marginTop: 24, flexWrap: 'wrap' }}>
-          <div className="stat" style={{ flex: 1, minWidth: 140 }}>
-            <div className="l">Salary</div>
-            <div className="v" style={{ fontSize: 18 }}>{job.salary}</div>
-          </div>
-          <div className="stat" style={{ flex: 1, minWidth: 140 }}>
-            <div className="l">Format</div>
-            <div className="v" style={{ fontSize: 18 }}>{job.type}</div>
-          </div>
-          <div className="stat" style={{ flex: 1, minWidth: 140 }}>
-            <div className="l">Posted</div>
-            <div className="v" style={{ fontSize: 18 }}>{job.posted}</div>
-          </div>
-        </div>
-
-        <div className="col gap-8" style={{ marginTop: 24 }}>
-          <div className="eyebrow">About the role</div>
-          <div style={{ fontSize: 14, lineHeight: 1.6 }}>{job.description}</div>
-        </div>
-
-        <div className="col gap-8" style={{ marginTop: 20 }}>
-          <div className="eyebrow">Key skills</div>
-          <div className="row gap-8" style={{ flexWrap: 'wrap' }}>
-            {job.tags.map((t) => <span key={t} className="tag">{t}</span>)}
-          </div>
-        </div>
-
+        {/* Блок Why this match */}
         <div style={{
-          marginTop: 24, padding: 16,
-          background: 'var(--accent-soft)', borderRadius: 14,
-          display: 'flex', gap: 12, alignItems: 'flex-start'
+          marginTop: 24, padding: 16, background: '#262626', 
+          border: '1px solid #333', borderRadius: 8,
+          display: 'flex', flexDirection: 'column', gap: 8
         }}>
-          <span style={{ color: 'var(--accent-strong)', flexShrink: 0, marginTop: 2 }}><Icon.AI /></span>
-          <div className="col gap-4">
-            <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--accent-ink)' }}>AI tailors your resume</div>
-            <div style={{ fontSize: 13, color: 'var(--accent-ink)', opacity: 0.85, lineHeight: 1.5 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', color: '#888', textTransform: 'uppercase' }}>
+            Why this match
+          </span>
+          <span style={{ fontSize: 14, color: '#D4D4D4', lineHeight: 1.5 }}>
+            {job.why || `Matched from ${getDomainName(job.url)} listings. Tags overlap with your profile: ${job.tags?.slice(0, 3).join(', ')}.`}
+          </span>
+        </div>
+
+        {/* Статистика (Salary, Format, Posted) */}
+        <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
+          {[
+            { label: 'Salary', value: job.salary || 'Negotiable' },
+            { label: 'Format', value: job.type || 'remote' },
+            { label: 'Posted', value: job.posted || 'Recently' }
+          ].map((stat, idx) => (
+            <div key={idx} style={{ 
+              flex: 1, minWidth: 140, background: '#262626', 
+              border: '1px solid #333', borderRadius: 8, padding: '12px 16px',
+              display: 'flex', flexDirection: 'column', gap: 4
+            }}>
+              <div style={{ fontSize: 12, color: '#888' }}>{stat.label}</div>
+              <div style={{ fontSize: 16, fontWeight: 500, color: '#FFF' }}>{stat.value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* About the role */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 24 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', color: '#888', textTransform: 'uppercase' }}>
+            About the role
+          </div>
+          <div style={{ fontSize: 14, color: '#D4D4D4', lineHeight: 1.6 }}>
+            {job.description || `View full job description on ${getDomainName(job.url)}.`}
+          </div>
+        </div>
+
+        {/* Key skills */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', color: '#888', textTransform: 'uppercase' }}>
+            Key skills
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {job.tags?.map((t) => (
+              <span key={t} style={{ 
+                padding: '4px 12px', background: 'transparent', 
+                border: '1px solid #444', borderRadius: 100, 
+                fontSize: 13, color: '#CCC' 
+              }}>
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* --- AI Block --- */}
+        <div style={{
+          marginTop: 24, padding: '16px 20px',
+          background: '#1A2A20', // Більш точний темний зелений фон
+          border: '1px solid #233A2B',
+          borderRadius: 12,
+          display: 'flex', gap: 12, alignItems: 'flex-start',
+          textAlign: 'left'
+        }}>
+          <span style={{ color: '#72B87D', flexShrink: 0, marginTop: 2 }}>
+            <Icon.Spark size={18} />
+          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+            <div style={{ fontWeight: 500, fontSize: 14, color: '#72B87D', margin: 0 }}>
+              AI tailors your resume
+            </div>
+            <div style={{ fontSize: 13, color: '#72B87D', opacity: 0.8, lineHeight: 1.5, margin: 0 }}>
               We'll highlight relevant projects and skills, and reframe your experience to fit the role.
             </div>
           </div>
         </div>
 
-        <div className="row gap-12" style={{ marginTop: 24, justifyContent: 'flex-end' }}>
-          <button className="btn btn-ghost" onClick={onSave}>
-            <Icon.Bookmark /> {saved ? 'Saved' : 'Save'}
+        {/* Футер з кнопками */}
+        <div style={{ display: 'flex', gap: 12, marginTop: 32, justifyContent: 'flex-end', alignItems: 'center' }}>
+          <button 
+            onClick={onSave}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'transparent', border: 'none', color: '#A0A0A0',
+              cursor: 'pointer', padding: '8px 16px', fontSize: 14, fontWeight: 500
+            }}
+          >
+            <Icon.Bookmark size={16} /> {saved ? 'Saved' : 'Save'}
           </button>
-          <button className="btn btn-primary" onClick={() => job.url && window.open(job.url, '_blank')}>
-            View on praca.pl <Icon.Arrow />
+          
+          <button 
+            onClick={() => job.url && window.open(job.url, '_blank')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: '#FFF', color: '#000',
+              border: 'none', borderRadius: 100,
+              padding: '10px 20px', fontSize: 14, fontWeight: 500,
+              cursor: 'pointer'
+            }}
+          >
+            View on {getDomainName(job.url)} <Icon.Arrow size={16} />
           </button>
         </div>
+
       </div>
-    </div>);
+    </div>
+  );
 }
 
 // ============ Toast ============
