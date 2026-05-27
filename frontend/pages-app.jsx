@@ -144,24 +144,61 @@ function HomePage({ user, profile, jobs = [], onOpenJob, savedIds, onSave, onNav
 }
 
 // ============ Search Page ============
-function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave,
-  onSearch, searchStatus, searchResults, searchQuery, pollAttempts }) {
+function SearchPage({ user, userId, profile, jobs = [], onOpenJob, savedIds, onSave,
+  onSearch, searchStatus, searchResults, searchQuery, pollAttempts, searchMeta,
+  onSearchPage, profileFilters, onSavePreference }) {
 
-  const [query, setQuery] = useStateH('');
-  const [minMatch, setMinMatch] = useStateH(0);
-  const [activeTags, setActiveTags] = useStateH([]);
-  const [format, setFormat] = useStateH('all');
+  const [query, setQuery] = useStateH(profileFilters?.role || '');
+  const [minMatch, setMinMatch] = useStateH(profileFilters?.searchPreference?.min_match || 0);
+  const [activeTags, setActiveTags] = useStateH(
+  profileFilters?.searchPreference?.active_tags || profileFilters?.skills || []);
+  const [format, setFormat] = useStateH(
+    profileFilters?.searchPreference?.format || 
+    (profileFilters?.formats?.length ? profileFilters.formats[0] : 'all')
+  );
+  useEffectH(() => {
+    if (!userId) {
+      setQuery('');
+      setMinMatch(0);
+      setActiveTags([]);
+      setFormat('all');
+      return;
+    }
+
+    const pref = profileFilters?.searchPreference;
+    setQuery(pref?.query || profileFilters?.role || '');
+    setMinMatch(pref?.min_match || 0);
+    setActiveTags(pref?.active_tags || profileFilters?.skills || []);
+    setFormat(pref?.format || (profileFilters?.formats?.[0]) || 'all');
+
+  }, [userId]);
+
+  useEffectH(() => {
+    if (onSavePreference && userId) {
+      onSavePreference({ query, active_tags: activeTags, format, min_match: minMatch });
+    }
+  }, [query, minMatch, activeTags, format]);
   const [useAI, setUseAI] = useStateH(true);
   const [searchPage, setSearchPage] = useStateH(1);
   const [searchTotalCount, setSearchTotalCount] = useStateH(0);
   const PAGE_SIZE = 10;
   const [localPage, setLocalPage] = useStateH(1);
   const LOCAL_PAGE_SIZE = 10;
-  const [searchMeta, setSearchMeta] = useState({ count: 0, page: 1 });
   const isLiveSearch = searchStatus !== 'idle' && searchQuery === query.trim().toLowerCase();
   const sourceJobs = isLiveSearch && searchStatus === 'completed' ? searchResults : jobs;
   useEffectH(() => { setLocalPage(1); }, [query, activeTags, minMatch, format]);
-
+  useEffectH(() => {
+  if (profileFilters?.role && searchStatus === 'idle') {
+    setQuery(profileFilters.role);
+    setActiveTags(profileFilters.skills || []);
+    if (profileFilters.formats?.length) {
+      setFormat(profileFilters.formats[0]);
+    }
+    if (onSearch) {
+      onSearch(profileFilters.role, profileFilters.formats?.includes('remote') ? 'remote' : '');
+    }
+  }
+}, [profileFilters]);
   const allTags = useMemoH(() => {
     const t = new Set();
     sourceJobs.forEach((j) => j.tags.forEach((x) => t.add(x)));
@@ -187,6 +224,13 @@ function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave,
     if (activeTags.length) r = r.filter((j) => activeTags.some((t) => j.tags.includes(t)));
     if (format !== 'all') r = r.filter((j) => j.location.toLowerCase().includes(format));
     r = r.filter((j) => j.match >= minMatch);
+    if (profileFilters?.salary) {
+      r = r.filter(j => {
+        if (!j.salary || j.salary === 'Negotiable') return true;
+        const num = parseInt(j.salary.replace(/\D/g, ''));
+        return isNaN(num) || num >= profileFilters.salary * 10;
+      });
+    }
     r.sort((a, b) => b.match - a.match);
     return r;
   }, [query, activeTags, minMatch, format, sourceJobs, isLiveSearch, searchStatus]);
@@ -256,7 +300,6 @@ function SearchPage({ user, profile, jobs = [], onOpenJob, savedIds, onSave,
         </div>
       </div>
 
-      {/* Статус-банер */}
       {isLiveSearch && searchStatus === 'pending' && (
         <div style={{
           padding: '14px 20px', borderRadius: 12, marginBottom: 16,
@@ -388,7 +431,6 @@ function ProfilePage({ user, profile, onSave, onNav, fetchWithAuth }) {
   const EXP_LABEL = { junior: 'Junior', middle: 'Mid-level', senior: 'Senior', lead: 'Lead / Expert' };
   const FORMAT_LABEL = { remote: 'Remote', hybrid: 'Hybrid', office: 'Office', relocation: 'Open to relocation' };
 
-  // Завантажуємо актуальні дані профілю з сервера при монтуванні
   useEffectH(() => {
     if (user.isDevMock) {
       setServerProfile(profile);
@@ -412,12 +454,11 @@ function ProfilePage({ user, profile, onSave, onNav, fetchWithAuth }) {
     serverProfile.experience && 
     serverProfile.formats?.length;
 
-  // Визначаємо прогрес якщо не завершено
   const getProgress = () => {
   if (!serverProfile) return 1;
-  if (!serverProfile.role) return 1;                          // крок 1: роль не заповнена
-  if (!serverProfile.skills?.length || serverProfile.skills.length < 3) return 2;  // крок 2: скіли не заповнені
-  return 3;                                                   // крок 3: преференції
+  if (!serverProfile.role) return 1;
+  if (!serverProfile.skills?.length || serverProfile.skills.length < 3) return 2;
+  return 3;
 };
 
   if (loading) {
@@ -430,7 +471,6 @@ function ProfilePage({ user, profile, onSave, onNav, fetchWithAuth }) {
     );
   }
 
-  // Режим перегляду завершеного профілю
   if (isComplete && !editing) {
     return (
       <div className="profile-edit">
@@ -460,7 +500,6 @@ function ProfilePage({ user, profile, onSave, onNav, fetchWithAuth }) {
           </div>
         </section>
 
-        {/* Картки з даними */}
         <div className="col gap-16" style={{ marginTop: 24 }}>
           
           <div className="stat" style={{ padding: '20px 24px', borderRadius: 16 }}>
@@ -501,7 +540,6 @@ function ProfilePage({ user, profile, onSave, onNav, fetchWithAuth }) {
     );
   }
 
-  // Режим редагування / неповного профілю
   return (
     <div className="profile-edit">
       <header className="page-head">
@@ -543,11 +581,11 @@ function ProfilePage({ user, profile, onSave, onNav, fetchWithAuth }) {
       </section>
 
       <section className="profile-form">
-        {!loading && (  // ← додай цю перевірку
+        {!loading && (
           <OnboardingPage
             profile={serverProfile || profile}
             embedded
-            initialStep={getProgress()}   // ← без + 1, бо тепер повертає 1/2/3
+            initialStep={getProgress()}
             onSave={(p) => {
               setServerProfile(prev => ({ ...prev, ...p }));
               onSave(p);
@@ -574,7 +612,6 @@ function SavedPage({ user, jobs = [], savedIds, onOpenJob, onSave, fetchWithAuth
 
   useEffectH(() => {
     if (user.isDevMock) {
-      // dev mock: filter from jobs array
       setSavedJobs(jobs.filter(j => savedIds.includes(j.id)));
       setTotalCount(savedIds.length);
       setLoading(false);
@@ -735,7 +772,6 @@ function SettingsPage({ user, theme, onThemeChange, onLogout }) {
       const data = await res.json();
 
       if (!res.ok) {
-        // Витягуємо помилку з бекенду (наприклад, якщо старий пароль неправильний)
         const errorMsg = data.old_password?.[0] || data.new_password?.[0] || 'Failed to change password.';
         throw new Error(errorMsg);
       }

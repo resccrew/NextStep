@@ -1,4 +1,3 @@
-# jobs/views.py
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from rest_framework.pagination import PageNumberPagination
@@ -7,14 +6,10 @@ from rest_framework.filters import SearchFilter
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
+from jobs.tasks import scrape_all_sources_sequential_task
+from .pagination import JobPagination
 from .models import Job, SearchQueryCache
 from .serializers import JobSerializer, SearchQueryCacheSerializer
-
-
-class JobPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 100
 
 
 class JobListView(generics.ListAPIView):
@@ -102,7 +97,7 @@ def search_jobs(request):
         query_text=query,
         defaults={'status': 'pending'}
     )
-    task = scrape_keyword.delay([query])
+    task = scrape_all_sources_sequential_task.delay([query])
     print(f"[SEARCH] Task sent: {task.id} for query='{query}'")
 
     return Response({
