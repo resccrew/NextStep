@@ -1,0 +1,108 @@
+services:
+  db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-nextstep_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nextstep_net
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - nextstep_net
+
+  api:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_NAME=${DB_NAME:-nextstep_db}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - nextstep_net
+
+  celery:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A base worker -l info --pool=solo
+    volumes:
+      - ./backend:/app
+    environment:
+      - DB_NAME=${DB_NAME:-nextstep_db}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - nextstep_net
+
+  celery-beat:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A base beat -l info
+    volumes:
+      - ./backend:/app
+    environment:
+      - DB_NAME=${DB_NAME:-nextstep_db}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - nextstep_net
+
+  frontend:
+    image: nginx:alpine
+    ports:
+      - "5500:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    networks:
+      - nextstep_net
+
+volumes:
+  postgres_data:
+
+networks:
+  nextstep_net:
+    driver: bridge

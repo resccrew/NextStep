@@ -51,7 +51,6 @@ function DevJump({ onLogin, onJump }) {
 
 function App() {
   const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
   const [profile, setProfile] = useState({
     role: '',
     skills: [],
@@ -267,6 +266,7 @@ const formatJob = (j) => {
     setPage('home');
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('nextstep_user');
     
     setSearchQuery('');
     setSearchStatus('idle');
@@ -396,19 +396,6 @@ const formatJob = (j) => {
     setNeedsOnboarding(!userData.onboarding_done && !userData.isDevMock);
   };
 
-  const saveSearchPreference = useMemo(() => {
-  let timer;
-  return (data) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      if (!user || user.isDevMock) return;
-      fetchWithAuth('http://localhost:8000/api/users/search-preference/', {
-        method: 'PATCH',
-        body: JSON.stringify(data)
-      }).catch(err => console.error('Failed to save search preference:', err));
-    }, 1000);
-  };
-}, [user]);
 
   const handleSaveOnboarding = (p) => {
     setProfile(prev => ({ ...prev, ...p }));
