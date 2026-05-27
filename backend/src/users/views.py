@@ -90,6 +90,15 @@ class SavedVacancyListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+class SearchPreferenceView(generics.RetrieveUpdateAPIView):
+    serializer_class = SearchPreferenceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        pref, _ = SearchPreference.objects.get_or_create(
+            user=self.request.user
+        )
+        return pref
 
 class SavedVacancyDestroyView(generics.DestroyAPIView):
     serializer_class = SavedVacancySerializer

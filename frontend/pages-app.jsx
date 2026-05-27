@@ -179,11 +179,37 @@ function SearchPage({ user, userId, profile, jobs = [], onOpenJob, savedIds, onS
     }
   }, [query, minMatch, activeTags, format]);
   const [useAI, setUseAI] = useStateH(true);
-  const [searchPage, setSearchPage] = useStateH(1);
-  const [searchTotalCount, setSearchTotalCount] = useStateH(0);
-  const PAGE_SIZE = 10;
   const [localPage, setLocalPage] = useStateH(1);
   const LOCAL_PAGE_SIZE = 10;
+  useEffectH(() => {
+    if (!userId) {
+      setQuery('');
+      setMinMatch(0);
+      setActiveTags([]);
+      setFormat('all');
+      return;
+    }
+
+    const pref = profileFilters?.searchPreference;
+
+    setQuery(pref?.query || profileFilters?.role || '');
+    setMinMatch(pref?.min_match || 0);
+    setActiveTags(pref?.active_tags || profileFilters?.skills || []);
+    setFormat(pref?.format || (profileFilters?.formats?.[0]) || 'all');
+
+  }, [userId]);
+
+  useEffectH(() => {
+    if (onSavePreference && userId) {
+      onSavePreference({
+        query,
+        active_tags: activeTags,
+        format,
+        min_match: minMatch
+      });
+    }
+  }, [query, minMatch, activeTags, format]);
+
   const isLiveSearch = searchStatus !== 'idle' && searchQuery === query.trim().toLowerCase();
   const sourceJobs = isLiveSearch && searchStatus === 'completed' ? searchResults : jobs;
   useEffectH(() => { setLocalPage(1); }, [query, activeTags, minMatch, format]);
@@ -622,8 +648,6 @@ function SavedPage({ user, jobs = [], savedIds, onOpenJob, onSave, fetchWithAuth
       .then(res => res.ok ? res.json() : Promise.reject())
       .then(data => {
         const items = Array.isArray(data) ? data : (data.results || []);
-        // items have { id, job (job_id), title }
-        // we need to enrich with full job data from the jobs array
         const enriched = items.map(sv => {
           const fullJob = jobs.find(j => j.id === sv.job);
           return fullJob || { id: sv.job, title: sv.title || 'Saved Job', company: '', match: 0, tags: [], salary: '', location: '', type: '', why: '' };
@@ -633,7 +657,7 @@ function SavedPage({ user, jobs = [], savedIds, onOpenJob, onSave, fetchWithAuth
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [page, savedIds.length]); // re-fetch when page changes or saves change
+  }, [page, savedIds.length]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
   const avgMatch = savedJobs.length ? Math.round(savedJobs.reduce((s, j) => s + (j.match || 0), 0) / savedJobs.length) : 0;
