@@ -5,16 +5,16 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.pagination import PageNumberPagination
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from django.contrib.auth import get_user_model
 from dotenv import load_dotenv
 
-from users.models import SavedVacancy, UserProfile
+from users.pagination import SavedVacancyPagination
+from users.models import SavedVacancy, SearchPreference, UserProfile
 from .serializers import (
     OnboardingSerializer, RegisterSerializer, CustomTokenObtainPairSerializer,
-    CVSerializer, SavedVacancySerializer, SettingsSerializer, ChangePasswordSerializer
+    CVSerializer, SavedVacancySerializer, SearchPreferenceSerializer, SettingsSerializer, ChangePasswordSerializer
 )
 
 load_dotenv()
@@ -55,7 +55,7 @@ class GoogleLoginView(APIView):
             refresh = RefreshToken.for_user(user)
             profile = getattr(user, 'profile', None)
             saved_vacancies = SavedVacancySerializer(user.saved_vacancies.all(), many=True).data
-
+            search_pref = getattr(user, 'search_preference', None)
             return Response({
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
@@ -71,16 +71,13 @@ class GoogleLoginView(APIView):
                     'formats': profile.formats if profile else [],
                     'salary': profile.salary if profile else None,
                     'saved_vacancies': saved_vacancies,
+                    'search_preference': SearchPreferenceSerializer(search_pref).data if search_pref else None,
                 }
             }, status=status.HTTP_200_OK)
 
         except ValueError:
             return Response({'error': 'Недійсний токен Google'}, status=status.HTTP_400_BAD_REQUEST)
 
-class SavedVacancyPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 100
 
 class SavedVacancyListCreateView(generics.ListCreateAPIView):
     serializer_class = SavedVacancySerializer
@@ -101,6 +98,15 @@ class SavedVacancyDestroyView(generics.DestroyAPIView):
     def get_queryset(self):
         return self.request.user.saved_vacancies.all()
 
+class SearchPreferenceView(generics.RetrieveUpdateAPIView):
+    serializer_class = SearchPreferenceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        pref, _ = SearchPreference.objects.get_or_create(
+            user=self.request.user
+        )
+        return pref
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()

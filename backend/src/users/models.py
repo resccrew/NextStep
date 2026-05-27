@@ -46,6 +46,21 @@ class UserProfile(models.Model):
         return f"Profile of {self.user.email}"
 
 
+class SearchPreference(models.Model):
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='search_preference'
+    )
+    query = models.CharField(max_length=255, blank=True, default='')
+    active_tags = models.JSONField(default=list, blank=True)
+    format = models.CharField(max_length=20, default='all', blank=True)
+    min_match = models.IntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"SearchPreference of {self.user.email}"
+
 class SavedVacancy(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_vacancies')
     job = models.ForeignKey(Job, on_delete=models.CASCADE, null=True, blank=True)

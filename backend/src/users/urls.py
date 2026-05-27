@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import ChangePasswordView, CustomTokenObtainPairView, ManageCVView, RegisterView, GoogleLoginView, SaveOnboardingView, SaveSettingsView, SavedVacancyDestroyView, SavedVacancyListCreateView
+from .views import ChangePasswordView, CustomTokenObtainPairView, ManageCVView, RegisterView, GoogleLoginView, SaveOnboardingView, SaveSettingsView, SavedVacancyDestroyView, SavedVacancyListCreateView, SearchPreferenceView
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -12,5 +12,6 @@ urlpatterns = [
     path('onboarding/', SaveOnboardingView.as_view(), name='save_onboarding'),
     path('saved-vacancies/', SavedVacancyListCreateView.as_view(), name='saved_vacancies_list_create'),
     path('saved-vacancies/<int:pk>/', SavedVacancyDestroyView.as_view(), name='saved_vacancy_delete'),
+    path('search-preference/', SearchPreferenceView.as_view(), name='search_preference'),
     path('settings/', SaveSettingsView.as_view(), name='save_settings'),
 ]

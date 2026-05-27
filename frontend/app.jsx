@@ -51,6 +51,7 @@ function DevJump({ onLogin, onJump }) {
 
 function App() {
   const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [profile, setProfile] = useState({
     role: '',
     skills: [],
@@ -152,11 +153,11 @@ const pollSearchStatus = (query, workMode, attempts) => {
         const jobsData = await jobsRes.json();
 
         setSearchResults((jobsData.results || []).map(formatJob));
-        setSearchMeta({                        // ← додати
-          count: jobsData.count || 0,          // ←
-          next: jobsData.next || null,          // ←
-          previous: jobsData.previous || null,  // ←
-        });                                    // ← додати
+        setSearchMeta({
+          count: jobsData.count || 0,
+          next: jobsData.next || null,
+          previous: jobsData.previous || null,
+        });
         setSearchStatus('completed');
         setPollAttempts(0);
       } else if (data.status === 'failed') {
@@ -202,6 +203,24 @@ const formatJob = (j) => {
     setPage('home');
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    
+    // Скидати весь пошуковий стан
+    setSearchQuery('');
+    setSearchStatus('idle');
+    setSearchResults([]);
+    setSearchMeta({ count: 0, next: null, previous: null });
+    setPollAttempts(0);
+    
+    // Скидати profile до дефолту
+    setProfile({
+      role: '',
+      skills: [],
+      experience: 'middle',
+      formats: ['remote'],
+      salary: 200,
+      onboardingDone: false
+    });
+
     setToast('Successfully signed out.');
   };
 
@@ -259,7 +278,6 @@ const formatJob = (j) => {
         const res = await fetch(url);
         if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
-        // Handle both paginated ({ results, next }) and plain array responses
         const items = Array.isArray(data) ? data : (data.results || []);
         allJobs = [...allJobs, ...items.map(formatJob)];
         url = Array.isArray(data) ? null : data.next;
@@ -283,7 +301,6 @@ const formatJob = (j) => {
       fetchWithAuth('http://localhost:8000/api/users/saved-vacancies/?page_size=100')
         .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch saved vacancies'))
         .then(data => {
-          // Handle paginated response
           const items = Array.isArray(data) ? data : (data.results || []);
           setSavedVacancies(items);
         })
@@ -293,28 +310,46 @@ const formatJob = (j) => {
 
   const handleLogin = (u) => {
     const userData = u.user ? { ...u.user, access: u.access } : u;
-    
+
     if (u.access) localStorage.setItem('access_token', u.access);
     if (u.refresh) localStorage.setItem('refresh_token', u.refresh);
 
     setUser({ ...userData, title: userData.role || userData.title || '' });
-    
-    if (userData.saved_vacancies) {
-      setSavedVacancies(userData.saved_vacancies);
-    }
-    
-    if (userData.theme) {
-      setTheme(userData.theme);
+
+    if (userData.saved_vacancies) setSavedVacancies(userData.saved_vacancies);
+    if (userData.theme) setTheme(userData.theme);
+
+    if (userData.search_preference) {
+      const pref = userData.search_preference;
+      setSearchQuery(pref.query || '');
+      setProfile(prev => ({ ...prev, searchPreference: pref }));
     }
 
     setNeedsOnboarding(!userData.onboarding_done && !userData.isDevMock);
   };
 
+  const saveSearchPreference = useMemo(() => {
+  let timer;
+  return (data) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      if (!user || user.isDevMock) return;
+      fetchWithAuth('http://localhost:8000/api/users/search-preference/', {
+        method: 'PATCH',
+        body: JSON.stringify(data)
+      }).catch(err => console.error('Failed to save search preference:', err));
+    }, 1000);
+  };
+}, [user]);
+
   const handleSaveOnboarding = (p) => {
     setProfile(prev => ({ ...prev, ...p }));
     setNeedsOnboarding(false);
-    setPage('home');
+    setPage('search');
     setToast('Profile saved. Feed updated.');
+    if (p.role) {
+      searchJobs(p.role, p.formats?.includes('remote') ? 'remote' : '');
+    }
   };
 
   const toggleSave = (jobId) => {
@@ -408,6 +443,7 @@ const formatJob = (j) => {
   } else if (page === 'search') {
   content = <SearchPage
     user={user}
+    userId={user?.id}
     profile={profile}
     jobs={jobs}
     onOpenJob={setOpenJob}
@@ -420,6 +456,8 @@ const formatJob = (j) => {
     pollAttempts={pollAttempts}
     searchMeta={searchMeta}
     onSearchPage={(page) => searchJobs(searchQuery, '', page)}
+    profileFilters={{ ...profile }}
+    onSavePreference={saveSearchPreference}
   />;
   } else if (page === 'profile') {
   content = <ProfilePage 
@@ -428,7 +466,7 @@ const formatJob = (j) => {
     jobs={jobs}
     onSave={(p) => { setProfile(prev => ({...prev, ...p})); setToast('Profile updated.'); }}
     onNav={setPage}
-    fetchWithAuth={fetchWithAuth}  // ← додати це
+    fetchWithAuth={fetchWithAuth}
   />;
     } else if (page === 'saved') {
     content = <SavedPage 
@@ -437,7 +475,7 @@ const formatJob = (j) => {
       savedIds={savedIds}
       onOpenJob={setOpenJob} 
       onSave={toggleSave} 
-      fetchWithAuth={fetchWithAuth} // <--- Add this line!
+      fetchWithAuth={fetchWithAuth}
     />;
   } else if (page === 'settings') {
     content = <SettingsPage user={user} theme={theme} onThemeChange={setTheme}  

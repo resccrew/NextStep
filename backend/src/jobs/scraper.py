@@ -10,13 +10,10 @@ import hashlib
 import django
 import os
 
-# 1. Get the directory this script is in (.../backend/src/jobs)
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# 2. Go one level up to get the Django root (.../backend/src)
 DJANGO_PROJECT_DIR = os.path.dirname(CURRENT_DIR)
 
-# 3. Add it to the Python path
 sys.path.append(DJANGO_PROJECT_DIR)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'base.settings')
@@ -28,7 +25,6 @@ from django.utils import timezone
 
 BASE_URL = "https://www.praca.pl"
 
-# IT keywords — only jobs with these in title will be kept
 IT_KEYWORDS = [
     "developer", "programista", "programistka", "frontend", "backend",
     "fullstack", "devops", "python", "java", "javascript", "react", "vue",
@@ -58,7 +54,6 @@ HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
 
-# Search pages — remote IT jobs
 SEARCH_PAGES = [
     "https://www.praca.pl/oferty-pracy.html?q=developer+programista",
     "https://www.praca.pl/oferty-pracy_2.html?q=developer+programista",

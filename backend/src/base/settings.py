@@ -44,8 +44,8 @@ CELERY_TIMEZONE = 'Europe/Warsaw'
 from celery.schedules import crontab
 
 CELERY_BEAT_SCHEDULE = {
-    'scrape-popular-keywords-every-12h': {
-        'task': 'jobs.tasks.scrape_keyword',
+    'scrape-all-sources-sequentially-every-12h': {
+        'task': 'jobs.tasks.scrape_all_sources_sequential_task',
         'schedule': crontab(minute=0, hour='*/12'),
         'args': (['python', 'react', 'java', 'javascript', 'devops',
                   'frontend', 'backend', 'fullstack', 'php', 'data'],),
