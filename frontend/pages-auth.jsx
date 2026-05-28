@@ -280,9 +280,9 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false, initialStep
 
       <div className="steps" style={{marginBottom: 20}}>
         <span className={`pill ${step>=1 ? 'is-on' : ''}`}>1 · About you</span>
-        <span style={{width: 16, height: 1, background: 'rgba(15,67,23,0.18)'}}></span>
+        <span className="ob-step-sep"></span>
         <span className={`pill ${step>=2 ? 'is-on' : ''}`}>2 · Skills</span>
-        <span style={{width: 16, height: 1, background: 'rgba(15,67,23,0.18)'}}></span>
+        <span className="ob-step-sep"></span>
         <span className={`pill ${step>=3 ? 'is-on' : ''}`}>3 · Preferences</span>
       </div>
 
@@ -347,13 +347,7 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false, initialStep
             ))}
           </div>
 
-          <div style={{
-            padding: 20,
-            background: 'rgba(255,255,255,0.45)',
-            border: '1px solid rgba(15,67,23,0.10)',
-            borderRadius: 18,
-            minHeight: 200
-          }}>
+          <div className="ob-skill-wrap">
             <div className="skill-cloud">
               {SKILL_GROUPS.find(g=>g.name===activeGroup).skills.map(s => (
                 <Chip key={s} on={skills.includes(s)} onClick={()=>toggleSkill(s)}>{s}</Chip>
@@ -421,16 +415,11 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false, initialStep
               style={{width: '100%', accentColor: 'var(--accent-strong)'}} />
           </div>
 
-          <div style={{
-            padding: 20, borderRadius: 18,
-            background: 'rgba(255,255,255,0.55)',
-            border: '1px solid rgba(15,67,23,0.12)',
-            display: 'flex', gap: 14, alignItems: 'flex-start'
-          }}>
+          <div className="ob-match-box">
             <span style={{color: 'var(--text)', marginTop: 2}}><Icon.AI /></span>
             <div className="col gap-4">
               <div style={{fontWeight: 700, fontSize: 14, color: 'var(--text)'}}>Ready to match</div>
-              <div style={{fontSize: 13, color: 'rgba(15,67,23,0.7)', lineHeight: 1.5}}>
+              <div style={{fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5}}>
                 We'll find {Math.max(8, skills.length * 4)} jobs with over 70% relevance.
                 Updated daily.
               </div>
