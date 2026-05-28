@@ -510,7 +510,7 @@ const formatJob = (j) => {
 
   if (needsOnboarding) {
     return (
-      <div className="on-green" style={{minHeight: '100vh', background: '#EDF8DF'}}>
+      <div className={theme !== 'dark' ? 'on-green' : ''} style={{minHeight: '100vh', background: 'var(--bg)'}}>
         <OnboardingPage
           profile={profile}
           onSave={handleSaveOnboarding}
