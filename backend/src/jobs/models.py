@@ -69,7 +69,6 @@ class Job(models.Model):
         ordering = ['-scraped_at']
 
     def save(self, *args, **kwargs):
-        # автоматично рахуємо хеш при збереженні
         if not self.url_hash:
             self.url_hash = hashlib.sha256(self.original_url.encode()).hexdigest()
         super().save(*args, **kwargs)

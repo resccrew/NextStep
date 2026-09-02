@@ -166,10 +166,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5500",
 ]
 
-# Якщо ви використовуєте аутентифікацію з кукі/сесіями (для JWT це необов'язково, але корисно мати):
 CORS_ALLOW_CREDENTIALS = True
 
 AUTHENTICATION_BACKENDS = [
-    'users.backends.EmailOrUsernameModelBackend', # Наш новий бекенд
-    'django.contrib.auth.backends.ModelBackend',  # Стандартний бекенд (залишаємо як резервний)
+    'users.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]

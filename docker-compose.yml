@@ -53,7 +53,7 @@ services:
     build: 
       context: ./backend
       dockerfile: Dockerfile
-    command: celery -A base worker -l info --pool=solo
+    command: celery -A base worker -l info --pool=threads --concurrency=4
     volumes:
       - ./backend:/app
     environment:

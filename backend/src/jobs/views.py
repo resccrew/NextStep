@@ -6,7 +6,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-from jobs.tasks import scrape_all_sources_sequential_task
+from jobs.tasks import scrape_all_sources_parallel_task
 from .pagination import JobPagination
 from .models import Job, SearchQueryCache
 from .serializers import JobSerializer, SearchQueryCacheSerializer
@@ -92,12 +92,12 @@ def search_jobs(request):
         if not stuck:
             return Response({'status': 'pending', 'message': 'Scraping in progress.'})
 
-    from .tasks import scrape_keyword
+    from .tasks import scrape_praca_pl
     SearchQueryCache.objects.update_or_create(
         query_text=query,
         defaults={'status': 'pending'}
     )
-    task = scrape_all_sources_sequential_task.delay([query])
+    task = scrape_all_sources_parallel_task.delay([query])
     print(f"[SEARCH] Task sent: {task.id} for query='{query}'")
 
     return Response({
