@@ -197,7 +197,7 @@ function JobDetail({ job, onClose, saved, onSave }) {
             Why this match
           </span>
           <span style={{ fontSize: 14, color: '#D4D4D4', lineHeight: 1.5 }}>
-            {job.why || `Matched from ${getDomainName(job.url)} listings. Tags overlap with your profile: ${job.tags?.slice(0, 3).join(', ')}.`}
+            {job.why}
           </span>
         </div>
 

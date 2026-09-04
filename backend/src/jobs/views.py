@@ -10,6 +10,7 @@ from jobs.tasks import scrape_all_sources_parallel_task
 from .pagination import JobPagination
 from .models import Job, SearchQueryCache
 from .serializers import JobSerializer, SearchQueryCacheSerializer
+from .services.tag_matcher import fallback_tag_match
 
 
 class JobListView(generics.ListAPIView):
@@ -75,7 +76,7 @@ def search_jobs(request):
         jobs_qs = _get_jobs_for_query(query, work_mode)
         paginator = JobPagination()
         page = paginator.paginate_queryset(jobs_qs, request)
-        serializer = JobSerializer(page, many=True)
+        serializer = JobSerializer(page, many=True, context={'request': request})
         return Response({
             'status': 'completed',
             'source': 'cache',
@@ -123,7 +124,7 @@ def search_status(request):
         jobs_qs = _get_jobs_for_query(query, work_mode)
         paginator = JobPagination()
         page = paginator.paginate_queryset(jobs_qs, request)
-        serializer = JobSerializer(page, many=True)
+        serializer = JobSerializer(page, many=True, context={'request': request})
         return Response({
             'status': 'completed',
             'count': paginator.page.paginator.count,
