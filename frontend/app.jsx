@@ -175,7 +175,7 @@ const searchJobs = async (query, workMode = '', page = 1) => {
   if (workMode) params.append('work_mode', workMode);
 
   try {
-    const res = await fetch(`http://localhost:8000/api/jobs/search/?${params}`);
+    const res = await fetchWithAuth(`http://localhost:8000/api/jobs/search/?${params}`);
     const data = await res.json();
 
     if (data.status === 'completed') {
@@ -203,7 +203,7 @@ const pollSearchStatus = (query, workMode, attempts) => {
 
   setTimeout(async () => {
     try {
-      const res = await fetch(
+      const res = await fetchWithAuth(
         `http://localhost:8000/api/jobs/search/status/?q=${encodeURIComponent(query)}`
       );
       const data = await res.json();
@@ -212,7 +212,7 @@ const pollSearchStatus = (query, workMode, attempts) => {
         const params = new URLSearchParams({ q: query });
         if (workMode) params.append('work_mode', workMode);
 
-        const jobsRes = await fetch(`http://localhost:8000/api/jobs/search/?${params}`);
+        const jobsRes = await fetchWithAuth(`http://localhost:8000/api/jobs/search/?${params}`);
         const jobsData = await jobsRes.json();
 
         setSearchResults((jobsData.results || []).map(formatJob));
@@ -239,12 +239,12 @@ const pollSearchStatus = (query, workMode, attempts) => {
 
 const formatJob = (j) => {
   const tags = j.tags || [];
-  const matchScore = Math.floor(Math.random() * (98 - 65 + 1)) + 65;
+  const matchScore = j.match_percent || 0;
   const sourceName = j.source_name || 'job board';
   
-  const why = tags.length
+  const why = j.reasoning || (tags.length
     ? `Matched from ${sourceName} listings. Tags overlap with your profile: ${tags.slice(0, 3).join(', ')}.`
-    : 'Strong match based on your profile and experience level.';
+    : 'Strong match based on your profile and experience level.');
     
   return {
     id: j.id,
@@ -258,7 +258,7 @@ const formatJob = (j) => {
     description: j.description || '',
     url: j.original_url || j.url,
     sourceName: sourceName,
-    posted: 'Recently',
+    posted: j.published_at ||'Recently',
     match: matchScore,
     why,
     featured: false
@@ -345,7 +345,7 @@ const formatJob = (j) => {
       let url = 'http://localhost:8000/api/jobs/?page_size=100';
       let allJobs = [];
       while (url) {
-        const res = await fetch(url);
+        const res = await fetchWithAuth(url);
         if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.results || []);
