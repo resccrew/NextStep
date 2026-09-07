@@ -221,7 +221,11 @@ function SearchPage({ user, userId, profile, jobs = [], onOpenJob, savedIds, onS
       setFormat(profileFilters.formats[0]);
     }
     if (onSearch) {
-      onSearch(profileFilters.role, profileFilters.formats?.includes('remote') ? 'remote' : '');
+      onSearch({
+        query: profileFilters.role,
+        workMode: profileFilters.formats?.includes('remote') ? 'remote' : '',
+        mode: useAI ? 'ai' : 'classic',
+      });
     }
   }
 }, [profileFilters]);
@@ -270,7 +274,7 @@ function SearchPage({ user, userId, profile, jobs = [], onOpenJob, savedIds, onS
 
   const handleSearch = () => {
     if (onSearch && query.trim()) {
-      onSearch(query.trim(), format !== 'all' ? format : '');
+      onSearch({ query: query.trim(), workMode: format !== 'all' ? format : '', mode: useAI ? 'ai' : 'classic' });
     }
   };
 
@@ -333,7 +337,7 @@ function SearchPage({ user, userId, profile, jobs = [], onOpenJob, savedIds, onS
           display: 'flex', alignItems: 'center', gap: 10, fontSize: 14
         }}>
           <span className="live-dot"></span>
-          Scraping fresh jobs for <strong>"{searchQuery}"</strong>...
+          {useAI ? 'AI searches for the best matches' : 'Scraping fresh jobs'} for <strong>"{searchQuery}"</strong>...
           {pollAttempts > 0 && (
             <span className="muted" style={{marginLeft: 'auto', fontSize: 12}}>
               attempt {pollAttempts}/{30}

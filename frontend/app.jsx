@@ -163,15 +163,18 @@ const [pollAttempts, setPollAttempts] = useState(0);
 const POLL_INTERVAL_MS = 4000;
 const MAX_POLLS = 30;
 
-const searchJobs = async (query, workMode = '', page = 1) => {
-  const q = query.trim().toLowerCase();
+const [lastSearchMode, setLastSearchMode] = useState('classic');
+
+const searchJobs = async ({ query, workMode = '', page = 1, mode = 'classic' } = {}) => {
+  const q = (query || '').trim().toLowerCase();
   if (!q) return;
 
   setSearchQuery(q);
   setSearchStatus('pending');
+  setLastSearchMode(mode);
   if (page === 1) setSearchResults([]);
 
-  const params = new URLSearchParams({ q, page });
+  const params = new URLSearchParams({ q, page, mode });
   if (workMode) params.append('work_mode', workMode);
 
   try {
@@ -183,7 +186,7 @@ const searchJobs = async (query, workMode = '', page = 1) => {
       setSearchMeta({ count: data.count || 0, next: data.next, previous: data.previous });
       setSearchStatus('completed');
     } else if (data.status === 'pending') {
-      pollSearchStatus(q, workMode, 0);
+      pollSearchStatus(q, workMode, 0, mode);
     } else {
       setSearchStatus('failed');
     }
@@ -194,7 +197,7 @@ const searchJobs = async (query, workMode = '', page = 1) => {
   }
 };
 
-const pollSearchStatus = (query, workMode, attempts) => {
+const pollSearchStatus = (query, workMode, attempts, mode = 'classic') => {
   if (attempts >= MAX_POLLS) {
     setSearchStatus('failed');
     setToast('Search is taking too long. Try again later.');
@@ -204,12 +207,12 @@ const pollSearchStatus = (query, workMode, attempts) => {
   setTimeout(async () => {
     try {
       const res = await fetchWithAuth(
-        `http://localhost:8000/api/jobs/search/status/?q=${encodeURIComponent(query)}`
+        `http://localhost:8000/api/jobs/search/status/?q=${encodeURIComponent(query)}&mode=${mode}`
       );
       const data = await res.json();
 
       if (data.status === 'completed') {
-        const params = new URLSearchParams({ q: query });
+        const params = new URLSearchParams({ q: query, mode });
         if (workMode) params.append('work_mode', workMode);
 
         const jobsRes = await fetchWithAuth(`http://localhost:8000/api/jobs/search/?${params}`);
@@ -228,11 +231,11 @@ const pollSearchStatus = (query, workMode, attempts) => {
         setToast('Scraping failed. Please try again.');
       } else {
         setPollAttempts(attempts + 1);
-        pollSearchStatus(query, workMode, attempts + 1);
+        pollSearchStatus(query, workMode, attempts + 1, mode);
       }
     } catch (err) {
       console.error('Poll error:', err);
-      pollSearchStatus(query, workMode, attempts + 1);
+      pollSearchStatus(query, workMode, attempts + 1, mode);
     }
   }, POLL_INTERVAL_MS);
 };
@@ -304,7 +307,7 @@ const formatJob = (j) => {
       const refreshToken = localStorage.getItem('refresh_token');
       if (refreshToken) {
         try {
-          const refreshRes = await fetch('http://localhost:8000/api/token/refresh/', {
+          const refreshRes = await fetch('http://localhost:8000/api/users/token/refresh/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refresh: refreshToken })
@@ -407,7 +410,11 @@ const formatJob = (j) => {
     setPage('search');
     setToast('Profile saved. Feed updated.');
     if (p.role) {
-      searchJobs(p.role, p.formats?.includes('remote') ? 'remote' : '');
+      searchJobs({
+        query: p.role,
+        workMode: p.formats?.includes('remote') ? 'remote' : '',
+        mode: 'ai',
+      });
     }
   };
 
@@ -539,7 +546,7 @@ const formatJob = (j) => {
     searchQuery={searchQuery}
     pollAttempts={pollAttempts}
     searchMeta={searchMeta}
-    onSearchPage={(page) => searchJobs(searchQuery, '', page)}
+    onSearchPage={(page) => searchJobs({ query: searchQuery, page, mode: lastSearchMode })}
     profileFilters={{ ...profile }}
     onSavePreference={saveSearchPreference}
   />;

@@ -91,6 +91,15 @@ services:
     networks:
       - nextstep_net
 
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - nextstep_net
+
   frontend:
     image: nginx:alpine
     ports:
@@ -102,6 +111,7 @@ services:
 
 volumes:
   postgres_data:
+  ollama_data:
 
 networks:
   nextstep_net:
