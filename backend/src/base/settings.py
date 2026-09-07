@@ -45,7 +45,7 @@ from celery.schedules import crontab
 
 CELERY_BEAT_SCHEDULE = {
     'scrape-all-sources-sequentially-every-12h': {
-        'task': 'jobs.tasks.scrape_all_sources_sequential_task',
+        'task': 'jobs.tasks.scrape_all_sources_parallel_task',
         'schedule': crontab(minute=0, hour='*/12'),
         'args': (['python', 'react', 'java', 'javascript', 'devops',
                   'frontend', 'backend', 'fullstack', 'php', 'data'],),
@@ -172,3 +172,7 @@ AUTHENTICATION_BACKENDS = [
     'users.backends.EmailOrUsernameModelBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", default="ollama")  # "ollama" | "anthropic"
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", default="http://ollama:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", default="llama3.2:3b")
