@@ -48,6 +48,7 @@ SKILL_TAGS = [
     "Linux", "Git", "REST", "GraphQL", "Next.js", "Django", "Spring",
     "Figma", "UI/UX", "DevOps", "QA", "Testing", "Agile", "Scrum",
     "Machine Learning", "AI", "Data Science", "Android", "iOS",
+    "HTML", "CSS",
 ]
 
 HEADERS = {
@@ -105,9 +106,10 @@ def extract_tags(text: str) -> list:
     found = []
     text_lower = text.lower()
     for tag in SKILL_TAGS:
-        if tag.lower() in text_lower:
+        pattern = r'\b' + re.escape(tag) + r'\b'
+        if re.search(pattern, text, re.IGNORECASE):
             found.append(tag)
-    return found[:5] if found else ["IT"]
+    return found
 
 
 def extract_experience(text: str) -> dict:

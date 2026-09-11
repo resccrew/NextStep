@@ -17,8 +17,15 @@ def scrape_theprotocol_task(keywords):
     saved_count = TheProtocolScraper().scrape(keywords, remote_only=False)
     return f"[THEPROTOCOL] Saved {saved_count} new jobs."
 
+@shared_task
+def scrape_theprotocol_task_single(keyword):
+    logging.info(f"[THEPROTOCOL] Celery task for: {keyword}")
+        
+    saved_count = TheProtocolScraper().scrape_single_kw(keyword, remote_only=False)
+    return f"[THEPROTOCOL] Saved {saved_count} new jobs."
+
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def scrape_praca_pl(self, keywords):
+def scrape_praca_pl(keywords):
     if isinstance(keywords, str):
         keywords = [keywords]
     logging.info(f"[Praca.pl] Celery task for: {keywords}")
@@ -27,10 +34,17 @@ def scrape_praca_pl(self, keywords):
     return f"[Praca.pl] Saved {saved_count} new jobs."
 
 @shared_task
+def scrape_praca_pl_single(keyword):
+    logging.info(f"[Praca.pl] Celery task for: {keyword}")
+        
+    saved_count = PracaPlScraper().scrape_single_kw(keyword, remote_only=False)
+    return f"[Praca.pl] Saved {saved_count} new jobs."
+
+@shared_task
 def scrape_all_sources_parallel_task(keywords):
-    job_group = group(
-        scrape_theprotocol_task.s(keywords),
-        scrape_praca_pl.s(keywords)
-    )
-    job_group.apply_async()
-    return "[ORCHESTRATOR] Parallel group triggered successfully."
+    if isinstance(keywords, str):
+        keywords = [keywords]
+    tasks = [scrape_theprotocol_task_single.s(kw) for kw in keywords] + \
+            [scrape_praca_pl_single.s(kw) for kw in keywords]
+    group(tasks).apply_async()
+    return f"[ORCHESTRATOR] {len(tasks)} tasks dispatched in parallel ({len(keywords)} keywords x 2 sources)."

@@ -62,8 +62,8 @@ class TheProtocolScraper(BaseScraper):
             return None
 
         soup = BeautifulSoup(resp.text, "html.parser")
-        full_text = soup.get_text(" ", strip=True)
-
+        full_text_el = soup.find("div", attrs={"class": "o1agt9pr g1cobuf9"})
+        full_text = full_text_el.get_text(" ", strip=True) if full_text_el else ""
         # Title
         title_el = soup.select_one("h1")
         title = title_el.get_text(strip=True) if title_el else ""
@@ -109,6 +109,13 @@ class TheProtocolScraper(BaseScraper):
         logo = company[0].upper() if company and company != "Unknown" else "T"
         exp = extract_experience(full_text)
         level = infer_level(title, full_text, exp['min'])
+        # tags_ = []
+        # tags_raw = soup.find_all("div", attrs={'data-test': 'chip-technology'})
+        # if tags_raw:
+        #     for tag_el in tags_raw:
+        #         tag = tag_el.get_text(" ", strip=True)
+        #         tags_.append(tag)
+
         tags = extract_tags(title + " " + full_text)
 
         return {

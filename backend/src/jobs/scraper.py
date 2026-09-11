@@ -102,7 +102,8 @@ class PracaPlScraper(BaseScraper):
         # Logo letter
         logo = company[0].upper() if company and company != "Unknown" else "P"
 
-        full_text = soup.get_text(" ", strip=True)
+        full_text_el = soup.find("div", attrs={"class": "app-offer__center-block"})
+        full_text = full_text_el.get_text(" ", strip=True) if full_text_el else ""
         exp = extract_experience(full_text)
         level = infer_level(title, full_text, exp['min'])
 
