@@ -1,5 +1,5 @@
 from django.conf import settings
-from .providers import OllamaClient, AnthropicClient
+from .providers import OllamaClient, AnthropicClient, GeminiClient
 
 _client_instance = None
 
@@ -20,6 +20,11 @@ def get_llm_client():
             model = settings.ANTHROPIC_MODEL,
         )
 
+    elif settings.LLM_PROVIDER == "gemini":
+        _client_instance = GeminiClient(
+            api_key=settings.GEMINI_API_KEY,
+            model=settings.GEMINI_MODEL,
+        )
     else:
         raise ValueError(f"Unknown LLM_PROVIDER: {settings.LLM_PROVIDER}")
 

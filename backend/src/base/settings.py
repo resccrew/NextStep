@@ -176,3 +176,6 @@ AUTHENTICATION_BACKENDS = [
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", default="ollama")  # "ollama" | "anthropic"
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", default="http://ollama:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", default="llama3.2:3b")
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", default="")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", default="gemini-flash-latest")

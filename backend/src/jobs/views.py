@@ -5,7 +5,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-
+from django.db.models import Q
 from jobs.tasks import scrape_all_sources_parallel_task
 from .pagination import JobPagination
 from .models import Job, SearchQueryCache
@@ -17,8 +17,8 @@ from jobs.services.matching import annotate_match_data
 
 QUERY_MAP = {
         'frontend': ['frontend', 'react', 'vue', 'angular', 'javascript'],
-        'backend': ['backend', 'python', 'java', 'php', 'node'],
-        'data': ['data', 'analityk', 'postgresql', 'sql', 'baz danych'],
+        'backend': ['backend', 'backend developer', 'backend engineer'],
+        'data': ['data', 'analityk', 'data engineer', 'data scientist', 'data analyst'],
         'devops': ['devops', 'linux', 'docker', 'kubernetes', 'administrator'],
         'designer': ['designer', 'ux', 'ui', 'figma', 'grafik'],
         'qa': ['qa', 'tester', 'quality'],
@@ -80,19 +80,18 @@ def _resolve_search_terms(query: str, mode: str):
     return [query]
 
 def _get_jobs_for_query(query, work_mode=''):
-    from django.db.models import Q
-
     search_terms = QUERY_MAP.get(query.lower(), [query])
 
-    q_filter = Q()
+    title_filter = Q()
     for term in search_terms:
-        q_filter |= Q(title__icontains=term)
-        q_filter |= Q(tags__icontains=term)
-        q_filter |= Q(description__icontains=term)
+        title_filter |= Q(title__icontains=term)
 
-    jobs_qs = Job.objects.filter(
-        is_active=True
-    ).filter(q_filter).select_related('company', 'source')
+    jobs_qs = Job.objects.filter(is_active = True).filter(title_filter)
+    if not jobs_qs.exists():
+        broad_filter = Q()
+        for term in search_terms:
+            broad_filter |= Q(tags_icontains=term) | Q(description_icontains=term)
+        jobs_qs = Job.objects.filter(broad_filter)
 
     if work_mode:
         jobs_qs = jobs_qs.filter(work_mode=work_mode)
