@@ -1,4 +1,3 @@
-import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .tag_matcher import fallback_tag_match
 from .ai_matcher import get_ai_match
@@ -37,10 +36,7 @@ def annotate_match_data(serialized_data, job_objects, request):
         ]
 
         for future in as_completed(futures):
-            try:
-                future.result()
-            except Exception as e:
-                logging.error(f"Ai match failed: {e}")
+            pass
 
     serialized_data.sort(key=lambda x: x['match_percent'], reverse=True)
 
