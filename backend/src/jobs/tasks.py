@@ -24,7 +24,7 @@ def scrape_theprotocol_task_single(keyword):
     saved_count = TheProtocolScraper().scrape_single_kw(keyword, remote_only=False)
     return f"[THEPROTOCOL] Saved {saved_count} new jobs."
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+@shared_task(max_retries=3, default_retry_delay=60)
 def scrape_praca_pl(keywords):
     if isinstance(keywords, str):
         keywords = [keywords]
