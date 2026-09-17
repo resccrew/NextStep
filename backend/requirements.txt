@@ -68,3 +68,9 @@ vine==5.1.0
 wcwidth==0.7.0
 anthropic
 google-genai
+pytest 
+pytest-django
+pytest-cov
+factory_boy
+responses
+freezegun
