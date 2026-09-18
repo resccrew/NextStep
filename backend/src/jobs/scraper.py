@@ -61,6 +61,9 @@ class PracaPlScraper(BaseScraper):
 
         soup = BeautifulSoup(resp.text, "html.parser")
 
+        return self.parse_job_detail(soup, url)
+
+    def parse_job_detail(self, soup: BeautifulSoup, url: str = "") -> dict | None:
         # Title
         title_el = soup.select_one("h1.app-offer__title")
         title = title_el.get_text(strip=True) if title_el else ""
@@ -68,7 +71,7 @@ class PracaPlScraper(BaseScraper):
             return None
 
         # Company
-        company_el = soup.select_one("span.app-offer__profile-link")
+        company_el = soup.select_one("div.app-offer__employer-data")
         company = company_el.get_text(strip=True) if company_el else "Unknown"
 
         # Location
@@ -84,7 +87,7 @@ class PracaPlScraper(BaseScraper):
             salary = "Negotiable"
 
         # Work mode (zdalna / stacjonarna / hybrydowa)
-        mode_el = soup.select_one(".app-offer__header-item--home span")
+        mode_el = soup.select_one("div.app-offer__header-item--home")
         work_mode = mode_el.get_text(strip=True) if mode_el else ""
 
         # Employment type
@@ -132,6 +135,7 @@ class PracaPlScraper(BaseScraper):
             'experience_level': level,
             'experience_years_min': exp['min'],
             'experience_years_max': exp['max'],
+            'work_mode': mode_en,
             "posted": parse_scraped_date(posted_raw),
             "match": random.randint(65, 97),
             "tags": tags,
