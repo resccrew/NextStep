@@ -10,6 +10,28 @@ Aplikacja webowa do wyszukiwania ofert pracy IT z personalizowanymi rekomendacja
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
+### Krok 0 — Skonfiguruj zmienne środowiskowe
+
+W katalogu `backend/src/` utwórz plik `.env` z wymaganymi zmiennymi:
+
+```env
+# Baza danych
+DB_NAME=nextstep
+DB_USER=nextstep
+DB_PASSWORD=nextstep
+DB_HOST=db
+DB_PORT=5432
+
+# Integracja AI (LLM) — patrz sekcja "Integracja AI i LLM"
+LLM_PROVIDER=ollama          # ollama | anthropic | gemini
+OLLAMA_BASE_URL=http://ollama:11434
+OLLAMA_MODEL=llama3.2:3b
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-flash-latest
+```
+
+> Jeśli `LLM_PROVIDER` nie zostanie ustawiony, domyślnie używany jest `ollama`. Do korzystania z Anthropic/Gemini wymagany jest odpowiedni klucz API dostawcy.
+
 ### Krok 1 — Uruchom Docker Desktop
 
 Upewnij się, że Docker Desktop jest uruchomiony (ikona wieloryba na pasku menu).
@@ -183,9 +205,11 @@ Projekt wykorzystuje duże modele językowe (LLM) do inteligentnej analizy dopas
 
 Moduł sztucznej inteligencji został zaprojektowany przy użyciu wzorca Factory (`jobs/llm/factory.py`), co pozwala na dynamiczne przełączanie się między różnymi dostawcami bez zmiany głównej logiki biznesowej. Dostępne integracje:
 
-- **Ollama** — do uruchamiania lokalnych modeli open-source (wysyła zapytania z wymuszonym `format: "json"`).
+- **Ollama** — do uruchamiania lokalnych modeli open-source (wysyła zapytania z wymuszonym `format: "json"`). Domyślny model: `llama3.2:3b`.
 - **Anthropic** — integracja z modelami z rodziny Claude.
-- **Gemini** — integracja z Google Gemini (używa `response_mime_type: "application/json"` dla ścisłego formatowania).
+- **Gemini** — integracja z Google Gemini (używa `response_mime_type: "application/json"` dla ścisłego formatowania). Domyślny model: `gemini-flash-latest`.
+
+Aktywny dostawca wybierany jest zmienną środowiskową `LLM_PROVIDER` (domyślnie `ollama`, patrz [Krok 0](#krok-0--skonfiguruj-zmienne-środowiskowe)) — zmiana nie wymaga edycji kodu, tylko `.env`.
 
 #### Inteligentne dopasowanie (AI Matching)
 
@@ -313,7 +337,7 @@ NextStep/
 │       ├── celerybeat-schedule
 │       ├── celerybeat-schedule.bak
 │       ├── celerybeat-schedule.dir
-│       ├── api/              # Dodatkowe endpointy API
+│       ├── api/              I
 │       │   ├── migrations/
 │       │   ├── admin.py
 │       │   ├── apps.py
@@ -322,7 +346,7 @@ NextStep/
 │       │   ├── tests.py
 │       │   ├── urls.py
 │       │   └── views.py
-│       ├── base/              # Ustawienia Django, Celery
+│       ├── base/              # Ustawienia Django, Celery, LLM
 │       │   ├── asgi.py
 │       │   ├── celery.py
 │       │   ├── settings.py
