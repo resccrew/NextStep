@@ -1,16 +1,22 @@
 # NextStep
 
+🇵🇱 [Polski](#-wersja-polska) · 🇬🇧 [English](#-english-version)
+
+---
+
+## 🇵🇱 Wersja polska
+
 Aplikacja webowa do wyszukiwania ofert pracy IT z personalizowanymi rekomendacjami. System automatycznie scrapuje polskie portale z ofertami pracy, dopasowuje oferty do profilu użytkownika i wyświetla najbardziej pasujące propozycje.
 
 ---
 
-## Uruchomienie projektu
+### Uruchomienie projektu
 
-### Wymagania
+#### Wymagania
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
-### Krok 0 — Skonfiguruj zmienne środowiskowe
+#### Krok 0 — Skonfiguruj zmienne środowiskowe
 
 W katalogu `backend/src/` utwórz plik `.env` z wymaganymi zmiennymi:
 
@@ -32,11 +38,11 @@ GEMINI_MODEL=gemini-flash-latest
 
 > Jeśli `LLM_PROVIDER` nie zostanie ustawiony, domyślnie używany jest `ollama`. Do korzystania z Anthropic/Gemini wymagany jest odpowiedni klucz API dostawcy.
 
-### Krok 1 — Uruchom Docker Desktop
+#### Krok 1 — Uruchom Docker Desktop
 
 Upewnij się, że Docker Desktop jest uruchomiony (ikona wieloryba na pasku menu).
 
-### Krok 2 — Uruchom kontenery
+#### Krok 2 — Uruchom kontenery
 
 ```bash
 docker-compose up --build
@@ -44,7 +50,7 @@ docker-compose up --build
 
 Poczekaj, aż wszystkie serwisy się uruchomią — zobaczysz logi od `db`, `redis`, `api`, `celery`, `frontend`.
 
-### Krok 3 — Wykonaj migracje
+#### Krok 3 — Wykonaj migracje
 
 W **nowym terminalu**, gdy kontenery działają:
 
@@ -52,7 +58,7 @@ W **nowym terminalu**, gdy kontenery działają:
 docker-compose exec api python manage.py migrate
 ```
 
-### Gotowe
+#### Gotowe
 
 | Serwis | Adres |
 |--------|-------|
@@ -65,15 +71,15 @@ docker-compose exec api python manage.py migrate
 
 ---
 
-## Opis projektu
+### Opis projektu
 
-### Czym jest NextStep
+#### Czym jest NextStep
 
 NextStep to SPA z Django REST API po stronie backendu. Użytkownik rejestruje się, wypełnia profil (rola, umiejętności, doświadczenie, format pracy, oczekiwane wynagrodzenie), a następnie system wyszukuje pasujące oferty pracy na polskich portalach IT i wyświetla je z procentem dopasowania.
 
 ---
 
-### Dlaczego React
+#### Dlaczego React
 
 React został wybrany do budowy SPA — użytkownik widzi jedną stronę, która dynamicznie się aktualizuje bez przeładowania.
 
@@ -97,7 +103,7 @@ React podłączony przez CDN bez bundlera (Webpack/Vite). JSX transpilowany bezp
 
 ---
 
-### Dlaczego Django
+#### Dlaczego Django
 
 Django zostało wybrane jako framework backendowy dla REST API. W połączeniu z Django REST Framework pokrywa większość potrzeb:
 
@@ -130,11 +136,11 @@ GET  /api/jobs/search/status/?q=          Status scrapowania
 
 ---
 
-### Jak działają scrapery
+#### Jak działają scrapery
 
 Projekt zawiera dwa niezależne scrapery dla polskich portali IT, które opierają się na wspólnej klasie i wykorzystują wielowątkowość w celu przyspieszenia działania.
 
-#### Podstawowa architektura (`jobs/base_scraper.py` i `jobs/scraper_utils.py`)
+##### Podstawowa architektura (`jobs/base_scraper.py` i `jobs/scraper_utils.py`)
 
 Cała wspólna logika została przeniesiona do klasy bazowej `BaseScraper` oraz narzędzi pomocniczych (utils):
 
@@ -144,7 +150,7 @@ Cała wspólna logika została przeniesiona do klasy bazowej `BaseScraper` oraz 
 - **Uniwersalny parsing:** Funkcje z `scraper_utils.py` odpowiadają za wyciąganie tagów (wyszukiwanie spośród ~40 technologii IT), określanie poziomu doświadczenia z tekstu (lata pracy i słowa kluczowe takie jak "senior" czy "junior"), parsowanie dat oraz standaryzację formatu pracy (Remote, Hybrid, On-site).
 - **Zapis i deduplikacja:** Wszystkie zapisy do bazy danych przechodzą przez `save_to_db()` z wygenerowaniem hasha SHA256 z URL, aby uniknąć duplikatów. System automatycznie tworzy również wpisy dla nowych firm.
 
-#### Scraper 1 — praca.pl (`jobs/scraper.py`)
+##### Scraper 1 — praca.pl (`jobs/scraper.py`)
 
 **Docelowa strona:** `https://www.praca.pl`
 
@@ -155,7 +161,7 @@ Cała wspólna logika została przeniesiona do klasy bazowej `BaseScraper` oraz 
 3. Wielowątkowo otwiera każdą ofertę i pobiera dane za pomocą selektorów CSS (tytuł, firma, lokalizacja, wynagrodzenie, typ zatrudnienia).
 4. Jeśli oferta zawiera pełny opis, przepuszcza go przez narzędzia (utils) w celu wyciągnięcia tagów i określenia `experience_level`.
 
-#### Scraper 2 — theprotocol.it (`jobs/theprotocol_scraper.py`)
+##### Scraper 2 — theprotocol.it (`jobs/theprotocol_scraper.py`)
 
 **Docelowa strona:** `https://theprotocol.it`
 
@@ -168,7 +174,7 @@ Cała wspólna logika została przeniesiona do klasy bazowej `BaseScraper` oraz 
 
 ---
 
-#### Uruchamianie scraperów przez Celery
+##### Uruchamianie scraperów przez Celery
 
 Scrapery są zarządzane przez Celery i uruchamiane asynchronicznie. W nowej architekturze system wykorzystuje przetwarzanie równoległe (Celery `group`) oraz automatyczne rozszerzanie zapytań (np. wyszukiwanie "frontend" pod maską szuka również "react", "vue" itd.):
 
@@ -197,11 +203,11 @@ frontend, backend, fullstack, php, data
 
 ---
 
-### Integracja AI i LLM
+#### Integracja AI i LLM
 
 Projekt wykorzystuje duże modele językowe (LLM) do inteligentnej analizy dopasowania między profilem użytkownika a ofertami pracy, a także do semantycznego rozszerzania zapytań wyszukiwania.
 
-#### Architektura wielodostawcowa (Multi-provider)
+##### Architektura wielodostawcowa (Multi-provider)
 
 Moduł sztucznej inteligencji został zaprojektowany przy użyciu wzorca Factory (`jobs/llm/factory.py`), co pozwala na dynamiczne przełączanie się między różnymi dostawcami bez zmiany głównej logiki biznesowej. Dostępne integracje:
 
@@ -209,9 +215,9 @@ Moduł sztucznej inteligencji został zaprojektowany przy użyciu wzorca Factory
 - **Anthropic** — integracja z modelami z rodziny Claude.
 - **Gemini** — integracja z Google Gemini (używa `response_mime_type: "application/json"` dla ścisłego formatowania). Domyślny model: `gemini-flash-latest`.
 
-Aktywny dostawca wybierany jest zmienną środowiskową `LLM_PROVIDER` (domyślnie `ollama`, patrz [Krok 0](#krok-0--skonfiguruj-zmienne-środowiskowe)) — zmiana nie wymaga edycji kodu, tylko `.env`.
+Aktywny dostawca wybierany jest zmienną środowiskową `LLM_PROVIDER` (domyślnie `ollama`, patrz Krok 0 powyżej) — zmiana nie wymaga edycji kodu, tylko `.env`.
 
-#### Inteligentne dopasowanie (AI Matching)
+##### Inteligentne dopasowanie (AI Matching)
 
 Jeśli użytkownik wyszukuje z parametrem `mode=ai`, system podłącza sztuczną inteligencję do głębokiej analizy dopasowania kandydata i oferty pracy (`jobs/services/ai_matcher.py`):
 
@@ -220,7 +226,7 @@ Jeśli użytkownik wyszukuje z parametrem `mode=ai`, system podłącza sztuczną
 - **Wykonywanie równoległe:** Ocena ofert pracy odbywa się asynchronicznie przez `ThreadPoolExecutor` (w 5 wątkach), co zapobiega blokowaniu aplikacji przy masowej analizie wyników.
 - **Niezawodność (mechanizm Fallback):** W przypadku błędu API lub nieprawidłowej odpowiedzi modelu (JSONDecodeError), system płynnie przełącza się na klasyczny algorytm dopasowywania tagów, aby użytkownik w każdym przypadku otrzymał wynik.
 
-#### Rozszerzanie zapytań (Query Expansion)
+##### Rozszerzanie zapytań (Query Expansion)
 
 W celu maksymalizacji zasięgu podczas scrapingu wykorzystywany jest serwis `jobs/services/query_expander.py`.
 
@@ -228,7 +234,7 @@ W celu maksymalizacji zasięgu podczas scrapingu wykorzystywany jest serwis `job
 - Przykład: Zapytanie "data" może zostać rozszerzone do "data analyst", "BI specialist", "business analyst". Pozwala to scraperom zbierać oferty, które mogłyby zostać pominięte przy bezpośrednim wyszukiwaniu.
 - Wbudowana walidacja odrzuca zbyt długie (powyżej 2 słów) lub zależne od lokalizacji frazy.
 
-#### Klasyczne dopasowanie (Tag Matcher)
+##### Klasyczne dopasowanie (Tag Matcher)
 
 Bazowy algorytm (`jobs/services/tag_matcher.py`), który działa domyślnie w trybie `mode=classic` lub służy jako zabezpieczenie (fallback) dla AI:
 
@@ -238,11 +244,11 @@ Bazowy algorytm (`jobs/services/tag_matcher.py`), który działa domyślnie w tr
 
 ---
 
-### Jak działa autoryzacja przez Google
+#### Jak działa autoryzacja przez Google
 
 NextStep obsługuje logowanie przez Google OAuth 2.0. Użytkownik nie musi tworzyć hasła — wystarczy konto Google.
 
-#### Krok 1 — Google Identity Services na frontendzie
+##### Krok 1 — Google Identity Services na frontendzie
 
 Na stronie logowania ładowana jest biblioteka Google Identity Services (`accounts.google.id`). Przy wejściu na stronę inicjalizuje się przycisk "Sign in with Google":
 
@@ -259,7 +265,7 @@ window.google.accounts.id.renderButton(
 
 Użytkownik klika przycisk → Google otwiera popup z wyborem konta → po wybraniu konta Google zwraca **JWT credential token** (id_token) podpisany przez Google.
 
-#### Krok 2 — Weryfikacja tokenu na backendzie
+##### Krok 2 — Weryfikacja tokenu na backendzie
 
 Frontend wysyła id_token do backendu:
 
@@ -279,7 +285,7 @@ last_name = idinfo.get('family_name', '')
 
 `verify_oauth2_token` sprawdza podpis kryptograficzny Google, datę wygaśnięcia i `CLIENT_ID` — jeśli cokolwiek się nie zgadza, rzuca `ValueError` i zwracamy `400 Bad Request`.
 
-#### Krok 3 — Tworzenie lub wyszukiwanie użytkownika
+##### Krok 3 — Tworzenie lub wyszukiwanie użytkownika
 
 ```
 Token ważny → backend sprawdza, czy user z tym emailem już istnieje
@@ -295,7 +301,7 @@ Nowy użytkownik stworzony przez Google **nie ma hasła** — `set_unusable_pass
 
 Przy kolejnym logowaniu przez Google token znowu trafia do `verify_oauth2_token` — jeśli email już jest w bazie, użytkownik po prostu dostaje nowe tokeny JWT.
 
-#### Krok 4 — Frontend przechowuje tokeny
+##### Krok 4 — Frontend przechowuje tokeny
 
 Po odpowiedzi `200 OK`:
 
@@ -308,7 +314,7 @@ Od tej chwili wszystkie zapytania do API lecą z nagłówkiem `Authorization: Be
 
 ---
 
-### Stos technologiczny
+#### Stos technologiczny
 
 | Warstwa | Technologia | Po co |
 |---------|------------|-------|
@@ -321,7 +327,7 @@ Od tej chwili wszystkie zapytania do API lecą z nagłówkiem `Authorization: Be
 | Autentykacja | JWT + Google OAuth | Logowanie przez email i Google |
 | Infrastruktura | Docker Compose + Nginx | Lokalny deployment całego stosu |
 
-### Struktura projektu
+#### Struktura projektu
 
 ```
 NextStep/
@@ -337,7 +343,7 @@ NextStep/
 │       ├── celerybeat-schedule
 │       ├── celerybeat-schedule.bak
 │       ├── celerybeat-schedule.dir
-│       ├── api/              I
+│       ├── api/              # Dodatkowe endpointy API
 │       │   ├── migrations/
 │       │   ├── admin.py
 │       │   ├── apps.py
@@ -346,7 +352,7 @@ NextStep/
 │       │   ├── tests.py
 │       │   ├── urls.py
 │       │   └── views.py
-│       ├── base/              # Ustawienia Django, Celery, LLM
+│       ├── base/              # Ustawienia Django, Celery
 │       │   ├── asgi.py
 │       │   ├── celery.py
 │       │   ├── settings.py
@@ -403,6 +409,418 @@ NextStep/
 │   ├── pages-app.jsx        # Strony aplikacji
 │   ├── pages-auth.jsx       # Strony autoryzacji
 │   └── styles.css           # Globalne style
+├── docker-compose.yml
+├── package.json
+└── README.md
+```
+
+---
+
+## 🇬🇧 English version
+
+A web application for searching IT job offers with personalized recommendations. The system automatically scrapes Polish job boards, matches job offers to the user's profile, and displays the best-matching proposals.
+
+---
+
+### Running the project
+
+#### Requirements
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+#### Step 0 — Configure environment variables
+
+In the `backend/src/` directory, create a `.env` file with the required variables:
+
+```env
+# Database
+DB_NAME=nextstep
+DB_USER=nextstep
+DB_PASSWORD=nextstep
+DB_HOST=db
+DB_PORT=5432
+
+# AI (LLM) integration — see the "AI & LLM Integration" section
+LLM_PROVIDER=ollama          # ollama | anthropic | gemini
+OLLAMA_BASE_URL=http://ollama:11434
+OLLAMA_MODEL=llama3.2:3b
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-flash-latest
+```
+
+> If `LLM_PROVIDER` is not set, `ollama` is used by default. Using Anthropic/Gemini requires the corresponding provider's API key.
+
+#### Step 1 — Start Docker Desktop
+
+Make sure Docker Desktop is running (the whale icon in the menu bar).
+
+#### Step 2 — Start the containers
+
+```bash
+docker-compose up --build
+```
+
+Wait until all services have started — you'll see logs from `db`, `redis`, `api`, `celery`, and `frontend`.
+
+#### Step 3 — Run migrations
+
+In a **new terminal**, while the containers are running:
+
+```bash
+docker-compose exec api python manage.py migrate
+```
+
+#### Done
+
+| Service | Address |
+|---------|---------|
+| Frontend (site) | http://localhost:5500 |
+| Backend API | http://localhost:8000 |
+| Database | localhost:5432 |
+| Redis | localhost:6380 |
+
+> Migrations only need to be run once (or when new ones appear). On subsequent runs, `docker-compose up` is enough.
+
+---
+
+### Project overview
+
+#### What is NextStep
+
+NextStep is an SPA with a Django REST API backend. The user registers, fills out a profile (role, skills, experience, work format, expected salary), and the system then searches for matching IT job offers on Polish job boards and displays them with a match percentage.
+
+---
+
+#### Why React
+
+React was chosen to build the SPA — the user sees a single page that updates dynamically without reloading.
+
+- The interface consists of many states: search with filters, job listing, opened card, saved offers, profile — React handles all of this without unnecessary complexity via `useState`/`useEffect`
+- Components are reusable: `JobCard`, `MatchMeter`, `Chip`, `Toast` are written once and used across different pages
+- Asynchronous work with the API — a search sends a request, React shows a loader, then swaps in the results without reloading the page
+
+React is loaded via CDN with no bundler (Webpack/Vite). JSX is transpiled directly in the browser by Babel Standalone.
+
+**Application pages:**
+
+| Page | Description |
+|------|-------------|
+| LoginPage | Login / registration via email or Google OAuth |
+| OnboardingPage | Filling out the profile: role, skills, experience, format, salary |
+| HomePage | Dashboard — statistics, top offer, recommendations |
+| SearchPage | Search with filters (format, employment type, salary, experience) |
+| SavedPage | Saved job offers |
+| ProfilePage | Profile overview and CV upload |
+| SettingsPage | Theme (dark/light), logout |
+
+---
+
+#### Why Django
+
+Django was chosen as the backend framework for the REST API. Combined with Django REST Framework, it covers most of the needs:
+
+- **ORM** — models (`User`, `Job`, `Company`, `SavedVacancy`) are described as Python classes; Django creates the PostgreSQL tables itself and manages migrations
+- **Authentication** — JWT via Simple JWT + Google OAuth without writing it from scratch
+- **DRF serializers** — JSON validation and data serialization written declaratively
+- **Celery integration** — the Django project is the foundation for Celery workers that run the scrapers in the background
+- **Django Admin** — a ready-made panel for managing data without writing a UI
+
+**API endpoints:**
+
+```
+POST   /api/users/register/               Registration
+POST   /api/users/login/                  Login, obtain JWT
+POST   /api/users/token/refresh/          Refresh token
+POST   /api/users/google/                 Google OAuth login
+POST   /api/users/change-password/        Change password
+
+GET/PUT  /api/users/onboarding/           User profile
+GET/PUT  /api/users/my-cv/                CV text
+PUT      /api/users/settings/             Theme settings
+GET/POST /api/users/saved-vacancies/      Saved offers
+DELETE   /api/users/saved-vacancies/<id>/ Delete a saved offer
+
+GET  /api/jobs/                           List of offers
+GET  /api/jobs/<id>/                      Offer details
+GET  /api/jobs/search/?q=&work_mode=      Search (triggers a scraper if no cache)
+GET  /api/jobs/search/status/?q=          Scraping status
+```
+
+---
+
+#### How the scrapers work
+
+The project contains two independent scrapers for Polish IT job boards, built on a shared base class and using multithreading to speed up execution.
+
+##### Base architecture (`jobs/base_scraper.py` and `jobs/scraper_utils.py`)
+
+All shared logic has been moved into the `BaseScraper` base class and helper utilities:
+
+- **Multithreading:** Fetching job-offer detail pages uses a `ThreadPoolExecutor` (up to 5 concurrent threads), significantly speeding up data collection.
+- **Fault tolerance:** Network requests go through `get_robust_session()`, which automatically retries requests on errors (429, 500, 502, 503, 504).
+- **Cache and statuses:** The search process is tracked in `SearchQueryCache`. Each query goes through the statuses `pending`, `completed`, or `failed`.
+- **Universal parsing:** Functions in `scraper_utils.py` handle tag extraction (searching among ~40 IT technologies), determining the experience level from text (years of experience and keywords like "senior" or "junior"), date parsing, and standardizing the work format (Remote, Hybrid, On-site).
+- **Saving and deduplication:** All database writes go through `save_to_db()`, which generates a SHA256 hash of the URL to avoid duplicates. The system also automatically creates entries for new companies.
+
+##### Scraper 1 — praca.pl (`jobs/scraper.py`)
+
+**Target site:** `https://www.praca.pl`
+
+**Algorithm:**
+
+1. Builds a search URL for the given keyword (e.g. `https://www.praca.pl/s-python.html?p=python`).
+2. Parses the page with `BeautifulSoup` and extracts unique job-offer links using the regular expression `^https://www\.praca\.pl/[^,]+_\d+\.html`.
+3. Opens each offer using multiple threads and extracts data via CSS selectors (title, company, location, salary, employment type).
+4. If the offer contains a full description, it is passed through the utilities to extract tags and determine `experience_level`.
+
+##### Scraper 2 — theprotocol.it (`jobs/theprotocol_scraper.py`)
+
+**Target site:** `https://theprotocol.it`
+
+**Algorithm:**
+
+1. Builds a search URL (e.g. `https://theprotocol.it/praca?kw=python`).
+2. Finds all links containing `/szczegoly/praca/` and builds the full URLs.
+3. Parses the offer page. The work format (Remote, Hybrid, On-site) is determined directly from the description text if it contains words such as "praca zdalna" ("remote work"), "100% remote", etc.
+4. The data is processed through the base utilities; tags and years of experience are extracted from the general text block of the offer.
+
+---
+
+##### Running the scrapers via Celery
+
+The scrapers are managed by Celery and run asynchronously. In the new architecture, the system uses parallel processing (Celery `group`) and automatic query expansion (e.g. a search for "frontend" also searches under the hood for "react", "vue", etc.):
+
+```
+User searches for "frontend"
+        ↓
+Django expands the query (e.g. frontend, react, vue...) and checks the cache (SearchQueryCache)
+        ↓
+If the cache is stale or missing → status 'pending', Celery runs scrape_all_sources_parallel_task
+        ↓
+Tasks run IN PARALLEL for each keyword and each source:
+├── theprotocol_scraper("frontend")
+├── praca_pl_scraper("frontend")
+├── theprotocol_scraper("react")
+└── ...
+        ↓
+Results are saved to the database → cache status changes to 'completed' → the frontend receives data via the /search/status/ endpoint
+```
+
+**Automatic runs** — Celery Beat runs a full cycle every 12 hours for the base keywords:
+
+```
+python, react, java, javascript, devops,
+frontend, backend, fullstack, php, data
+```
+
+---
+
+#### AI & LLM Integration
+
+The project uses large language models (LLMs) for intelligent match analysis between the user's profile and job offers, as well as for semantic search-query expansion.
+
+##### Multi-provider architecture
+
+The AI module is designed using the Factory pattern (`jobs/llm/factory.py`), which allows dynamically switching between different providers without changing the core business logic. Available integrations:
+
+- **Ollama** — for running local open-source models (sends requests with `format: "json"` enforced). Default model: `llama3.2:3b`.
+- **Anthropic** — integration with models from the Claude family.
+- **Gemini** — integration with Google Gemini (uses `response_mime_type: "application/json"` for strict formatting). Default model: `gemini-flash-latest`.
+
+The active provider is selected via the `LLM_PROVIDER` environment variable (defaults to `ollama`, see Step 0 above) — switching it requires no code changes, only editing `.env`.
+
+##### AI Matching
+
+If the user searches with the `mode=ai` parameter, the system engages AI for an in-depth analysis of the match between the candidate and a job offer (`jobs/services/ai_matcher.py`):
+
+- **Context analysis:** The LLM receives a comprehensive prompt combining the user's profile (role, skills, experience, work format, salary) and offer data (description, requirements, conditions).
+- **Structured response:** The model returns only a JSON object containing the exact match percentage (`match_percent`), lists of found and missing skills, and a 1–2 sentence rationale (`reasoning`).
+- **Parallel execution:** Job-offer scoring is done asynchronously via a `ThreadPoolExecutor` (5 threads), which prevents the application from blocking during bulk analysis of results.
+- **Reliability (fallback mechanism):** If there is an API error or an invalid model response (JSONDecodeError), the system seamlessly falls back to the classic tag-matching algorithm, so the user always gets a result.
+
+##### Query Expansion
+
+To maximize scraping coverage, the `jobs/services/query_expander.py` service is used.
+
+- AI analyzes the user's role and skills, generating 3–5 short, relevant synonyms (1–2 words each).
+- Example: the query "data" can be expanded to "data analyst", "BI specialist", "business analyst". This lets the scrapers pick up offers that might otherwise be missed with a direct search.
+- Built-in validation rejects phrases that are too long (more than 2 words) or location-dependent.
+
+##### Classic matching (Tag Matcher)
+
+The base algorithm (`jobs/services/tag_matcher.py`), which runs by default in `mode=classic` mode or serves as a fallback for AI:
+
+- Computes a base score from the set intersection of the user's skills and the tags extracted from the job offer.
+- Awards +10 bonus points if the offer's work format matches the candidate's preferences.
+- Adjusts the score based on experience level: +10 points for an exact match (e.g. middle == middle), or -5 points for a mismatch.
+
+---
+
+#### How Google authorization works
+
+NextStep supports login via Google OAuth 2.0. The user doesn't need to create a password — a Google account is enough.
+
+##### Step 1 — Google Identity Services on the frontend
+
+The login page loads the Google Identity Services library (`accounts.google.id`). On page load, a "Sign in with Google" button is initialized:
+
+```js
+window.google.accounts.id.initialize({
+  client_id: GOOGLE_CLIENT_ID,
+  callback: handleGoogleResponse
+});
+window.google.accounts.id.renderButton(
+  document.getElementById("google-btn-div"),
+  { theme: "outline", size: "large", width: 400 }
+);
+```
+
+The user clicks the button → Google opens a popup with an account picker → after choosing an account, Google returns a **JWT credential token** (id_token) signed by Google.
+
+##### Step 2 — Token verification on the backend
+
+The frontend sends the id_token to the backend:
+
+```
+POST /api/users/google/
+{ "token": "<id_token from Google>" }
+```
+
+The backend verifies the token using the `google-auth` library:
+
+```python
+idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), CLIENT_ID)
+email = idinfo['email']
+first_name = idinfo.get('given_name', '')
+last_name = idinfo.get('family_name', '')
+```
+
+`verify_oauth2_token` checks Google's cryptographic signature, the expiration date, and the `CLIENT_ID` — if anything doesn't match, it raises a `ValueError` and the API returns `400 Bad Request`.
+
+##### Step 3 — Creating or looking up the user
+
+```
+Token valid → backend checks whether a user with this email already exists
+       ↓
+Exists → use that user
+       ↓
+Doesn't exist → create a new account (username derived from the email prefix, set_unusable_password)
+       ↓
+Generate JWT (access + refresh) and return the user data
+```
+
+A new user created via Google **has no password** — `set_unusable_password()` blocks logging in through the classic email/password form. The account can only be used via Google.
+
+On subsequent Google logins, the token again goes through `verify_oauth2_token` — if the email already exists in the database, the user simply gets new JWT tokens.
+
+##### Step 4 — Frontend stores the tokens
+
+After a `200 OK` response:
+
+```js
+localStorage.setItem('access_token', data.access);
+localStorage.setItem('refresh_token', data.refresh);
+```
+
+From this point on, all API requests go out with the `Authorization: Bearer <access_token>` header — just like with email login.
+
+---
+
+#### Tech stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| Frontend | React 18 | SPA with a dynamic UI |
+| Styling | CSS (custom) | Custom design system |
+| Backend | Django 5 + DRF | REST API + ORM + Auth |
+| Database | PostgreSQL 14 | Storing offers and users |
+| Task queue | Celery + Redis | Scrapers running in the background |
+| Scrapers | BeautifulSoup4 + requests | Fetching offers from websites |
+| Authentication | JWT + Google OAuth | Login via email and Google |
+| Infrastructure | Docker Compose + Nginx | Local deployment of the whole stack |
+
+#### Project structure
+
+```
+NextStep/
+├── .vscode/
+│   └── settings.json
+├── backend/
+│   ├── Dockerfile
+│   ├── pytest.ini
+│   ├── requirements.txt
+│   └── src/
+│       ├── manage.py
+│       ├── .env
+│       ├── celerybeat-schedule
+│       ├── celerybeat-schedule.bak
+│       ├── celerybeat-schedule.dir
+│       ├── api/              # Additional API endpoints
+│       │   ├── migrations/
+│       │   ├── admin.py
+│       │   ├── apps.py
+│       │   ├── models.py
+│       │   ├── serializers.py
+│       │   ├── tests.py
+│       │   ├── urls.py
+│       │   └── views.py
+│       ├── base/              # Django settings, Celery
+│       │   ├── asgi.py
+│       │   ├── celery.py
+│       │   ├── settings.py
+│       │   ├── urls.py
+│       │   └── wsgi.py
+│       ├── jobs/               # Job offers, scrapers, Celery tasks
+│       │   ├── migrations/
+│       │   ├── tests/
+│       │   ├── llm/            # AI integration — Factory pattern, LLM providers
+│       │   │   ├── base.py
+│       │   │   ├── factory.py
+│       │   │   └── providers.py
+│       │   ├── services/       # AI matching, tag matcher, query expander
+│       │   │   ├── ai_matcher.py
+│       │   │   ├── matching.py
+│       │   │   ├── query_expander.py
+│       │   │   └── tag_matcher.py
+│       │   ├── admin.py
+│       │   ├── apps.py
+│       │   ├── base_scraper.py
+│       │   ├── models.py
+│       │   ├── pagination.py
+│       │   ├── scraper.py
+│       │   ├── scraper_utils.py
+│       │   ├── serializers.py
+│       │   ├── tasks.py
+│       │   ├── theprotocol_scraper.py
+│       │   ├── urls.py
+│       │   └── views.py
+│       └── users/              # Authentication, profiles, saved offers
+│           ├── migrations/
+│           ├── tests/
+│           │   ├── factories.py
+│           │   ├── test_auth.py
+│           │   └── test_google_oauth.py
+│           ├── admin.py
+│           ├── apps.py
+│           ├── backends.py
+│           ├── models.py
+│           ├── pagination.py
+│           ├── serializers.py
+│           ├── urls.py
+│           └── views.py
+├── frontend/
+│   ├── assets/
+│   │   ├── logo.png
+│   │   └── logo.svg
+│   ├── uploads/
+│   ├── app.jsx              # Main component
+│   ├── components.jsx       # Reusable components
+│   ├── data.js
+│   ├── index.html
+│   ├── NextStep.html        # Entry point
+│   ├── pages-app.jsx        # Application pages
+│   ├── pages-auth.jsx       # Authentication pages
+│   └── styles.css           # Global styles
 ├── docker-compose.yml
 ├── package.json
 └── README.md
