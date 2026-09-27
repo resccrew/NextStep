@@ -110,88 +110,107 @@ GET  /api/jobs/search/status/?q=          Status scrapowania
 
 ### Jak działają scrapery
 
-Projekt zawiera dwa niezależne scrapery dla polskich portali z ofertami pracy.
+Projekt zawiera dwa niezależne scrapery dla polskich portali IT, które opierają się na wspólnej klasie i wykorzystują wielowątkowość w celu przyspieszenia działania.
 
-#### Scraper 1 — praca.pl
+#### Podstawowa architektura (`jobs/base_scraper.py` i `jobs/scraper_utils.py`)
+
+Cała wspólna logika została przeniesiona do klasy bazowej `BaseScraper` oraz narzędzi pomocniczych (utils):
+
+- **Wielowątkowość:** Do pobierania stron ze szczegółami ofert pracy wykorzystywany jest `ThreadPoolExecutor` (do 5 jednoczesnych wątków), co znacznie przyspiesza proces zbierania danych.
+- **Odporność na błędy:** Zapytania sieciowe są wykonywane przez `get_robust_session()`, która automatycznie ponawia zapytanie (Retry) w przypadku otrzymania błędów (429, 500, 502, 503, 504).
+- **Cache i statusy:** Proces wyszukiwania jest rejestrowany w `SearchQueryCache`. Każde zapytanie przechodzi przez statusy `pending`, `completed` lub `failed`.
+- **Uniwersalny parsing:** Funkcje z `scraper_utils.py` odpowiadają za wyciąganie tagów (wyszukiwanie spośród ~40 technologii IT), określanie poziomu doświadczenia z tekstu (lata pracy i słowa kluczowe takie jak "senior" czy "junior"), parsowanie dat oraz standaryzację formatu pracy (Remote, Hybrid, On-site).
+- **Zapis i deduplikacja:** Wszystkie zapisy do bazy danych przechodzą przez `save_to_db()` z wygenerowaniem hasha SHA256 z URL, aby uniknąć duplikatów. System automatycznie tworzy również wpisy dla nowych firm.
+
+#### Scraper 1 — praca.pl (`jobs/scraper.py`)
 
 **Docelowa strona:** `https://www.praca.pl`
 
 **Algorytm:**
 
-1. Tworzy URL wyszukiwania z IT-słowami kluczowymi (3 strony na każde zapytanie):
-   ```
-   https://www.praca.pl/oferty-pracy.html?q=python
-   https://www.praca.pl/oferty-pracy_2.html?q=python
-   https://www.praca.pl/oferty-pracy_3.html?q=python
-   ```
+1. Tworzy URL wyszukiwania dla danego słowa kluczowego (np. `https://www.praca.pl/s-python.html?p=python`).
+2. Przy pomocy `BeautifulSoup` parsuje stronę i za pomocą wyrażenia regularnego `^https://www\.praca\.pl/[^,]+_\d+\.html` wyciąga unikalne linki do ofert pracy.
+3. Wielowątkowo otwiera każdą ofertę i pobiera dane za pomocą selektorów CSS (tytuł, firma, lokalizacja, wynagrodzenie, typ zatrudnienia).
+4. Jeśli oferta zawiera pełny opis, przepuszcza go przez narzędzia (utils) w celu wyciągnięcia tagów i określenia `experience_level`.
 
-2. Parsuje stronę przez BeautifulSoup, wyrażeniem regularnym wyciąga linki do ofert:
-   ```python
-   re.match(r'^https://www\.praca\.pl/[^,]+_\d+\.html', href)
-   ```
-
-3. Wchodzi na każdą ofertę, selektorami CSS pobiera dane:
-   - Tytuł: `.app-offer__title`
-   - Firma: `.app-offer__profile-link`
-   - Lokalizacja: `.app-offer__main-item--location span`
-   - Wynagrodzenie: `.app-offer__salary`
-   - Format pracy: `.app-offer__header-item--home span`
-
-4. Wzbogaca dane:
-   - **Poziom** określany z tekstu ("senior" → senior) lub lat doświadczenia (0–1 → junior, 1–3 → middle, 3–6 → senior, 6+ → lead)
-   - **Tagi** — wyszukiwanie w tekście oferty spośród ~40 technologii (React, Python, Docker, AWS i inne)
-   - **Format pracy** tłumaczony z polskiego: "praca zdalna" → Remote, "praca hybrydowa" → Hybrid
-
-5. Zapisuje do bazy z deduplikacją po hashu SHA256 URL — ta sama oferta nie trafi do bazy dwukrotnie
-
-**Rate limiting:** losowe przerwy 0.8–1.5 sek między zapytaniami, 2–3 sek między stronami.
-
----
-
-#### Scraper 2 — theprotocol.it
+#### Scraper 2 — theprotocol.it (`jobs/theprotocol_scraper.py`)
 
 **Docelowa strona:** `https://theprotocol.it`
 
 **Algorytm:**
 
-1. Tworzy URL wyszukiwania:
-   ```
-   https://theprotocol.it/filtry/python;kw
-   ```
-
-2. Szuka w HTML linków z `/szczegoly/praca/` — strony ofert pracy
-
-3. Na stronie oferty:
-   - Tytuł: tag `<h1>`
-   - Firma: link z `/szukaj/pracodawca/` (regex)
-   - Format pracy: określany z tekstu ("praca zdalna" / "100% remote" → Remote, "hybryd" → Hybrid)
-
-4. Ta sama logika wyciągania tagów i określania poziomu co w scraperze pierwszym
+1. Tworzy URL wyszukiwania (np. `https://theprotocol.it/praca?kw=python`).
+2. Znajduje wszystkie linki zawierające `/szczegoly/praca/` i formuje pełne adresy URL.
+3. Parsuje stronę oferty. Format pracy (Remote, Hybrid, On-site) jest określany bezpośrednio z tekstu opisu, jeśli zawiera on słowa takie jak "praca zdalna", "100% remote" itp.
+4. Dane są przetwarzane przez podstawowe narzędzia; tagi i lata doświadczenia są wyciągane z ogólnego bloku tekstu oferty.
 
 ---
 
 #### Uruchamianie scraperów przez Celery
 
-Scrapery nie są uruchamiane ręcznie — zarządza nimi Celery:
+Scrapery są zarządzane przez Celery i uruchamiane asynchronicznie. W nowej architekturze system wykorzystuje przetwarzanie równoległe (Celery `group`) oraz automatyczne rozszerzanie zapytań (np. wyszukiwanie "frontend" pod maską szuka również "react", "vue" itd.):
 
 ```
-Użytkownik wyszukuje "python"
+Użytkownik wyszukuje "frontend"
         ↓
-Django sprawdza cache (SearchQueryCache)
+Django rozszerza zapytanie (np. frontend, react, vue...) i sprawdza cache (SearchQueryCache)
         ↓
-Cache nieaktualny (> 12 godzin)? → Celery uruchamia scrape_all_sources_sequential_task
+Jeśli cache jest nieaktualny lub go brakuje → status 'pending', Celery uruchamia scrape_all_sources_parallel_task
         ↓
-1. Scrapuje theprotocol.it → 2. Scrapuje praca.pl
+Zadania (tasks) uruchamiają się RÓWNOLEGLE dla każdego słowa kluczowego i każdego źródła:
+├── theprotocol_scraper("frontend")
+├── praca_pl_scraper("frontend")
+├── theprotocol_scraper("react")
+└── ...
         ↓
-Wyniki w bazie → frontend otrzymuje dane
+Wyniki są zapisywane do bazy danych → cache zmienia status na 'completed' → frontend otrzymuje dane przez endpoint /search/status/
 ```
 
-**Automatyczne uruchamianie** — Celery Beat uruchamia pełny cykl co 12 godzin dla słów kluczowych:
+**Automatyczne uruchamianie** — Celery Beat uruchamia pełny cykl co 12 godzin dla bazowych słów kluczowych:
 
 ```
 python, react, java, javascript, devops,
 frontend, backend, fullstack, php, data
 ```
+
+---
+
+### Integracja AI i LLM
+
+Projekt wykorzystuje duże modele językowe (LLM) do inteligentnej analizy dopasowania między profilem użytkownika a ofertami pracy, a także do semantycznego rozszerzania zapytań wyszukiwania.
+
+#### Architektura wielodostawcowa (Multi-provider)
+
+Moduł sztucznej inteligencji został zaprojektowany przy użyciu wzorca Factory (`jobs/llm/factory.py`), co pozwala na dynamiczne przełączanie się między różnymi dostawcami bez zmiany głównej logiki biznesowej. Dostępne integracje:
+
+- **Ollama** — do uruchamiania lokalnych modeli open-source (wysyła zapytania z wymuszonym `format: "json"`).
+- **Anthropic** — integracja z modelami z rodziny Claude.
+- **Gemini** — integracja z Google Gemini (używa `response_mime_type: "application/json"` dla ścisłego formatowania).
+
+#### Inteligentne dopasowanie (AI Matching)
+
+Jeśli użytkownik wyszukuje z parametrem `mode=ai`, system podłącza sztuczną inteligencję do głębokiej analizy dopasowania kandydata i oferty pracy (`jobs/services/ai_matcher.py`):
+
+- **Analiza kontekstu:** LLM otrzymuje kompleksowy prompt, łączący profil użytkownika (rola, umiejętności, doświadczenie, format pracy, wynagrodzenie) i dane oferty (opis, wymagania, warunki).
+- **Ustrukturyzowana odpowiedź:** Model zwraca wyłącznie obiekt JSON, zawierający dokładny procent dopasowania (`match_percent`), listy znalezionych i brakujących umiejętności, a także uzasadnienie oceny w 1-2 zdaniach (`reasoning`).
+- **Wykonywanie równoległe:** Ocena ofert pracy odbywa się asynchronicznie przez `ThreadPoolExecutor` (w 5 wątkach), co zapobiega blokowaniu aplikacji przy masowej analizie wyników.
+- **Niezawodność (mechanizm Fallback):** W przypadku błędu API lub nieprawidłowej odpowiedzi modelu (JSONDecodeError), system płynnie przełącza się na klasyczny algorytm dopasowywania tagów, aby użytkownik w każdym przypadku otrzymał wynik.
+
+#### Rozszerzanie zapytań (Query Expansion)
+
+W celu maksymalizacji zasięgu podczas scrapingu wykorzystywany jest serwis `jobs/services/query_expander.py`.
+
+- AI analizuje rolę i umiejętności użytkownika, generując 3–5 krótkich, trafnych synonimów (po 1-2 słowa).
+- Przykład: Zapytanie "data" może zostać rozszerzone do "data analyst", "BI specialist", "business analyst". Pozwala to scraperom zbierać oferty, które mogłyby zostać pominięte przy bezpośrednim wyszukiwaniu.
+- Wbudowana walidacja odrzuca zbyt długie (powyżej 2 słów) lub zależne od lokalizacji frazy.
+
+#### Klasyczne dopasowanie (Tag Matcher)
+
+Bazowy algorytm (`jobs/services/tag_matcher.py`), który działa domyślnie w trybie `mode=classic` lub służy jako zabezpieczenie (fallback) dla AI:
+
+- Oblicza bazowy scoring na podstawie części wspólnej (Set Intersection) umiejętności użytkownika i wyciągniętych tagów z oferty pracy.
+- Przyznaje +10 punktów bonusowych, jeśli format pracy oferty pokrywa się z preferencjami kandydata.
+- Koryguje ocenę na podstawie poziomu doświadczenia: +10 punktów za dokładne dopasowanie (np. middle == middle) lub -5 punktów za brak dopasowania.
 
 ---
 
@@ -282,21 +301,85 @@ Od tej chwili wszystkie zapytania do API lecą z nagłówkiem `Authorization: Be
 
 ```
 NextStep/
+├── .vscode/
+│   └── settings.json
 ├── backend/
 │   ├── Dockerfile
+│   ├── pytest.ini
 │   ├── requirements.txt
 │   └── src/
 │       ├── manage.py
-│       ├── base/           # Ustawienia Django, Celery
-│       ├── users/          # Autentykacja, profile, zapisane oferty
-│       ├── jobs/           # Oferty pracy, scrapery, zadania Celery
-│       └── api/            # Dodatkowe endpointy API
+│       ├── .env
+│       ├── celerybeat-schedule
+│       ├── celerybeat-schedule.bak
+│       ├── celerybeat-schedule.dir
+│       ├── api/              # Dodatkowe endpointy API
+│       │   ├── migrations/
+│       │   ├── admin.py
+│       │   ├── apps.py
+│       │   ├── models.py
+│       │   ├── serializers.py
+│       │   ├── tests.py
+│       │   ├── urls.py
+│       │   └── views.py
+│       ├── base/              # Ustawienia Django, Celery
+│       │   ├── asgi.py
+│       │   ├── celery.py
+│       │   ├── settings.py
+│       │   ├── urls.py
+│       │   └── wsgi.py
+│       ├── jobs/               # Oferty pracy, scrapery, zadania Celery
+│       │   ├── migrations/
+│       │   ├── tests/
+│       │   ├── llm/            # Integracja AI — wzorzec Factory, dostawcy LLM
+│       │   │   ├── base.py
+│       │   │   ├── factory.py
+│       │   │   └── providers.py
+│       │   ├── services/       # AI matching, tag matcher, query expander
+│       │   │   ├── ai_matcher.py
+│       │   │   ├── matching.py
+│       │   │   ├── query_expander.py
+│       │   │   └── tag_matcher.py
+│       │   ├── admin.py
+│       │   ├── apps.py
+│       │   ├── base_scraper.py
+│       │   ├── models.py
+│       │   ├── pagination.py
+│       │   ├── scraper.py
+│       │   ├── scraper_utils.py
+│       │   ├── serializers.py
+│       │   ├── tasks.py
+│       │   ├── theprotocol_scraper.py
+│       │   ├── urls.py
+│       │   └── views.py
+│       └── users/              # Autentykacja, profile, zapisane oferty
+│           ├── migrations/
+│           ├── tests/
+│           │   ├── factories.py
+│           │   ├── test_auth.py
+│           │   └── test_google_oauth.py
+│           ├── admin.py
+│           ├── apps.py
+│           ├── backends.py
+│           ├── models.py
+│           ├── pagination.py
+│           ├── serializers.py
+│           ├── urls.py
+│           └── views.py
 ├── frontend/
-│   ├── NextStep.html       # Punkt wejścia
-│   ├── app.jsx             # Główny komponent
-│   ├── components.jsx      # Wielokrotnie używane komponenty
-│   ├── pages-app.jsx       # Strony aplikacji
-│   ├── pages-auth.jsx      # Strony autoryzacji
-│   └── styles.css          # Globalne style
-└── docker-compose.yml
+│   ├── assets/
+│   │   ├── logo.png
+│   │   └── logo.svg
+│   ├── uploads/
+│   ├── app.jsx              # Główny komponent
+│   ├── components.jsx       # Wielokrotnie używane komponenty
+│   ├── data.js
+│   ├── index.html
+│   ├── NextStep.html        # Punkt wejścia
+│   ├── pages-app.jsx        # Strony aplikacji
+│   ├── pages-auth.jsx       # Strony autoryzacji
+│   └── styles.css           # Globalne style
+├── docker-compose.yml
+├── package.json
+└── README.md
 ```
