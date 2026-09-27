@@ -19,6 +19,7 @@ Aplikacja webowa do wyszukiwania ofert pracy IT z personalizowanymi rekomendacja
   - [Krok 4 — Utwórz superużytkownika (opcjonalnie)](#krok-4--utwórz-superużytkownika-opcjonalnie)
   - [Krok 5 — Uruchom testy (opcjonalnie)](#krok-5--uruchom-testy-opcjonalnie)
   - [Gotowe](#gotowe)
+- [Zrzuty ekranu / Screenshots](#zrzuty-ekranu--screenshots)
 - [Opis projektu](#opis-projektu)
   - [Czym jest NextStep](#czym-jest-nextstep)
   - [Dlaczego React](#dlaczego-react)
@@ -112,6 +113,42 @@ Testy (`test_auth.py`, `test_google_oauth.py` i inne) korzystają z fabryk danyc
 | Redis | localhost:6380 |
 
 > Migracje należy wykonać tylko raz (lub po pojawieniu się nowych). Przy kolejnych uruchomieniach wystarczy `docker-compose up`.
+
+---
+
+### Zrzuty ekranu / Screenshots
+
+**LoginPage** — logowanie przez email/hasło oraz Google OAuth
+<img width="2558" height="1228" alt="Image" src="https://github.com/user-attachments/assets/3e7cb5ec-09da-4f2e-88a3-661e5a3d0fac" />
+
+**OnboardingPage** — formularz profilu (rola, umiejętności, doświadczenie, format, wynagrodzenie)
+<img width="2558" height="1227" alt="Image" src="https://github.com/user-attachments/assets/0325636d-2b89-4f9e-9c78-56bcb15a51d7" />
+
+**HomePage** — dashboard ze statystykami, top ofertą i rekomendacjami
+<img width="2547" height="1228" alt="Image" src="https://github.com/user-attachments/assets/059672df-45ea-47c8-891e-698850234a61" />
+
+**SearchPage — tryb klasyczny (`mode=classic`)** — lista ofert z `MatchMeter` i filtrami
+<img width="2540" height="1230" alt="Image" src="https://github.com/user-attachments/assets/af4029f4-e0d2-4ff1-b6f1-edcdb4e8daba" />
+
+**SearchPage — tryb AI (`mode=ai`)** — dopasowanie oparte na LLM z uzasadnieniem (`reasoning`)
+<img width="2547" height="1227" alt="Image" src="https://github.com/user-attachments/assets/c32ea4a8-880b-4ec2-a5dd-3c04598db024" />
+
+**Otwarta oferta (JobCard)** — pełny opis, tagi technologii, przycisk zapisu
+<img width="2545" height="1227" alt="Image" src="https://github.com/user-attachments/assets/e12d395c-9b05-4527-9452-bffc6e327b7d" />
+
+**SavedPage** — zapisane oferty pracy
+<img width="2543" height="1230" alt="Image" src="https://github.com/user-attachments/assets/0c2acbba-02e9-4f2b-b6c5-f0d4d15dd564" />
+
+**ProfilePage** — podgląd profilu i wgrane CV
+<img width="2557" height="1230" alt="Image" src="https://github.com/user-attachments/assets/95e79021-6ceb-4a27-958c-135eb21d0fae" />
+
+**SettingsPage** — motyw jasny / ciemny
+<img width="2557" height="1227" alt="Image" src="https://github.com/user-attachments/assets/6f080c65-12af-4ba3-902a-9d2fa708c1d8" />
+<img width="2557" height="1227" alt="Image" src="https://github.com/user-attachments/assets/bfb664f1-b8f0-4af1-9c5d-879038464dd2" />
+
+**Główny przepływ aplikacji (demo)** — logowanie → onboarding → wyszukiwanie → wyniki → zapis oferty + przełączanie motywu
+
+https://github.com/user-attachments/assets/6d276c6a-6bd5-4d2f-b229-92320141d58d
 
 ---
 
@@ -475,6 +512,7 @@ A web application for searching IT job offers with personalized recommendations.
   - [Step 4 — Create a superuser (optional)](#step-4--create-a-superuser-optional)
   - [Step 5 — Run the tests (optional)](#step-5--run-the-tests-optional)
   - [Done](#done)
+- [Screenshots](#screenshots)
 - [Project overview](#project-overview)
   - [What is NextStep](#what-is-nextstep)
   - [Why React](#why-react)
@@ -568,6 +606,42 @@ The tests (`test_auth.py`, `test_google_oauth.py`, and others) use data factorie
 | Redis | localhost:6380 |
 
 > Migrations only need to be run once (or when new ones appear). On subsequent runs, `docker-compose up` is enough.
+
+---
+
+### Screenshots
+
+**LoginPage** — login via email/password and Google OAuth
+<img width="2558" height="1228" alt="Image" src="https://github.com/user-attachments/assets/3e7cb5ec-09da-4f2e-88a3-661e5a3d0fac" />
+
+**OnboardingPage** — profile form (role, skills, experience, format, salary)
+<img width="2558" height="1227" alt="Image" src="https://github.com/user-attachments/assets/0325636d-2b89-4f9e-9c78-56bcb15a51d7" />
+
+**HomePage** — dashboard with statistics, top offer, and recommendations
+<img width="2547" height="1228" alt="Image" src="https://github.com/user-attachments/assets/059672df-45ea-47c8-891e-698850234a61" />
+
+**SearchPage — classic mode (`mode=classic`)** — offer list with `MatchMeter` and filters
+<img width="2540" height="1230" alt="Image" src="https://github.com/user-attachments/assets/af4029f4-e0d2-4ff1-b6f1-edcdb4e8daba" />
+
+**SearchPage — AI mode (`mode=ai`)** — LLM-based matching with a visible rationale (`reasoning`)
+<img width="2547" height="1227" alt="Image" src="https://github.com/user-attachments/assets/c32ea4a8-880b-4ec2-a5dd-3c04598db024" />
+
+**Opened offer (JobCard)** — full description, technology tags, save button
+<img width="2545" height="1227" alt="Image" src="https://github.com/user-attachments/assets/e12d395c-9b05-4527-9452-bffc6e327b7d" />
+
+**SavedPage** — saved job offers
+<img width="2543" height="1230" alt="Image" src="https://github.com/user-attachments/assets/0c2acbba-02e9-4f2b-b6c5-f0d4d15dd564" />
+
+**ProfilePage** — profile overview and uploaded CV
+<img width="2557" height="1230" alt="Image" src="https://github.com/user-attachments/assets/95e79021-6ceb-4a27-958c-135eb21d0fae" />
+
+**SettingsPage** — light / dark theme
+<img width="2557" height="1227" alt="Image" src="https://github.com/user-attachments/assets/6f080c65-12af-4ba3-902a-9d2fa708c1d8" />
+<img width="2557" height="1227" alt="Image" src="https://github.com/user-attachments/assets/bfb664f1-b8f0-4af1-9c5d-879038464dd2" />
+
+**Main application flow (demo)** — login → onboarding → search → results → save an offer + theme switching
+
+https://github.com/user-attachments/assets/6d276c6a-6bd5-4d2f-b229-92320141d58d
 
 ---
 
