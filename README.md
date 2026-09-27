@@ -8,6 +8,27 @@
 
 Aplikacja webowa do wyszukiwania ofert pracy IT z personalizowanymi rekomendacjami. System automatycznie scrapuje polskie portale z ofertami pracy, dopasowuje oferty do profilu użytkownika i wyświetla najbardziej pasujące propozycje.
 
+#### Spis treści
+
+- [Uruchomienie projektu](#uruchomienie-projektu)
+  - [Wymagania](#wymagania)
+  - [Krok 0 — Skonfiguruj zmienne środowiskowe](#krok-0--skonfiguruj-zmienne-środowiskowe)
+  - [Krok 1 — Uruchom Docker Desktop](#krok-1--uruchom-docker-desktop)
+  - [Krok 2 — Uruchom kontenery](#krok-2--uruchom-kontenery)
+  - [Krok 3 — Wykonaj migracje](#krok-3--wykonaj-migracje)
+  - [Krok 4 — Utwórz superużytkownika (opcjonalnie)](#krok-4--utwórz-superużytkownika-opcjonalnie)
+  - [Krok 5 — Uruchom testy (opcjonalnie)](#krok-5--uruchom-testy-opcjonalnie)
+  - [Gotowe](#gotowe)
+- [Opis projektu](#opis-projektu)
+  - [Czym jest NextStep](#czym-jest-nextstep)
+  - [Dlaczego React](#dlaczego-react)
+  - [Dlaczego Django](#dlaczego-django)
+  - [Jak działają scrapery](#jak-działają-scrapery)
+  - [Integracja AI i LLM](#integracja-ai-i-llm)
+  - [Jak działa autoryzacja przez Google](#jak-działa-autoryzacja-przez-google)
+  - [Stos technologiczny](#stos-technologiczny)
+  - [Struktura projektu](#struktura-projektu)
+
 ---
 
 ### Uruchomienie projektu
@@ -34,9 +55,14 @@ OLLAMA_BASE_URL=http://ollama:11434
 OLLAMA_MODEL=llama3.2:3b
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-flash-latest
+
+# Logowanie przez Google OAuth — patrz sekcja "Jak działa autoryzacja przez Google"
+GOOGLE_CLIENT_ID=
 ```
 
 > Jeśli `LLM_PROVIDER` nie zostanie ustawiony, domyślnie używany jest `ollama`. Do korzystania z Anthropic/Gemini wymagany jest odpowiedni klucz API dostawcy.
+
+> **Skąd wziąć `GOOGLE_CLIENT_ID`:** wejdź na [Google Cloud Console](https://console.cloud.google.com/apis/credentials), utwórz (lub wybierz) projekt, następnie **Create Credentials → OAuth client ID** typu *Web application*. Jako *Authorized JavaScript origins* dodaj `http://localhost:5500`. Skopiowany Client ID wklej zarówno do `.env` backendu (`GOOGLE_CLIENT_ID`), jak i do konfiguracji frontendu (`GOOGLE_CLIENT_ID` w `frontend/data.js` lub odpowiednim pliku konfiguracyjnym), ponieważ ten sam identyfikator jest używany po obu stronach — patrz [Jak działa autoryzacja przez Google](#jak-działa-autoryzacja-przez-google).
 
 #### Krok 1 — Uruchom Docker Desktop
 
@@ -57,6 +83,24 @@ W **nowym terminalu**, gdy kontenery działają:
 ```bash
 docker-compose exec api python manage.py migrate
 ```
+
+#### Krok 4 — Utwórz superużytkownika (opcjonalnie)
+
+Aby uzyskać dostęp do panelu Django Admin:
+
+```bash
+docker-compose exec api python manage.py createsuperuser
+```
+
+Panel dostępny jest pod adresem `http://localhost:8000/admin/`.
+
+#### Krok 5 — Uruchom testy (opcjonalnie)
+
+```bash
+docker-compose exec api pytest
+```
+
+Testy (`test_auth.py`, `test_google_oauth.py` i inne) korzystają z fabryk danych (`factories.py`) i konfiguracji z `pytest.ini`.
 
 #### Gotowe
 
@@ -420,6 +464,27 @@ NextStep/
 
 A web application for searching IT job offers with personalized recommendations. The system automatically scrapes Polish job boards, matches job offers to the user's profile, and displays the best-matching proposals.
 
+#### Table of contents
+
+- [Running the project](#running-the-project)
+  - [Requirements](#requirements)
+  - [Step 0 — Configure environment variables](#step-0--configure-environment-variables)
+  - [Step 1 — Start Docker Desktop](#step-1--start-docker-desktop)
+  - [Step 2 — Start the containers](#step-2--start-the-containers)
+  - [Step 3 — Run migrations](#step-3--run-migrations)
+  - [Step 4 — Create a superuser (optional)](#step-4--create-a-superuser-optional)
+  - [Step 5 — Run the tests (optional)](#step-5--run-the-tests-optional)
+  - [Done](#done)
+- [Project overview](#project-overview)
+  - [What is NextStep](#what-is-nextstep)
+  - [Why React](#why-react)
+  - [Why Django](#why-django)
+  - [How the scrapers work](#how-the-scrapers-work)
+  - [AI & LLM Integration](#ai--llm-integration)
+  - [How Google authorization works](#how-google-authorization-works)
+  - [Tech stack](#tech-stack)
+  - [Project structure](#project-structure)
+
 ---
 
 ### Running the project
@@ -446,9 +511,14 @@ OLLAMA_BASE_URL=http://ollama:11434
 OLLAMA_MODEL=llama3.2:3b
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-flash-latest
+
+# Google OAuth login — see the "How Google authorization works" section
+GOOGLE_CLIENT_ID=
 ```
 
 > If `LLM_PROVIDER` is not set, `ollama` is used by default. Using Anthropic/Gemini requires the corresponding provider's API key.
+
+> **Where to get `GOOGLE_CLIENT_ID`:** go to the [Google Cloud Console](https://console.cloud.google.com/apis/credentials), create (or select) a project, then **Create Credentials → OAuth client ID** of type *Web application*. Add `http://localhost:5500` as an *Authorized JavaScript origin*. Paste the resulting Client ID into both the backend `.env` (`GOOGLE_CLIENT_ID`) and the frontend configuration (`GOOGLE_CLIENT_ID` in `frontend/data.js` or the relevant config file), since the same identifier is used on both sides — see [How Google authorization works](#how-google-authorization-works).
 
 #### Step 1 — Start Docker Desktop
 
@@ -469,6 +539,24 @@ In a **new terminal**, while the containers are running:
 ```bash
 docker-compose exec api python manage.py migrate
 ```
+
+#### Step 4 — Create a superuser (optional)
+
+To get access to the Django Admin panel:
+
+```bash
+docker-compose exec api python manage.py createsuperuser
+```
+
+The panel is available at `http://localhost:8000/admin/`.
+
+#### Step 5 — Run the tests (optional)
+
+```bash
+docker-compose exec api pytest
+```
+
+The tests (`test_auth.py`, `test_google_oauth.py`, and others) use data factories (`factories.py`) and the configuration from `pytest.ini`.
 
 #### Done
 
