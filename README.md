@@ -118,35 +118,41 @@ Testy (`test_auth.py`, `test_google_oauth.py` i inne) korzystają z fabryk danyc
 
 ### Zrzuty ekranu / Screenshots
 
-**LoginPage** — logowanie przez email/hasło oraz Google OAuth
-<img width="2558" height="1228" alt="Image" src="https://github.com/user-attachments/assets/3e7cb5ec-09da-4f2e-88a3-661e5a3d0fac" />
+**Landing page** — strona startowa z nowym logo i opisem produktu
+<img src="docs/screenshots/01-landing.png" alt="Landing page" width="100%" />
 
-**OnboardingPage** — formularz profilu (rola, umiejętności, doświadczenie, format, wynagrodzenie)
-<img width="2558" height="1227" alt="Image" src="https://github.com/user-attachments/assets/0325636d-2b89-4f9e-9c78-56bcb15a51d7" />
+**LoginPage** — logowanie / rejestracja przez email lub Google OAuth
+<img src="docs/screenshots/02-login.png" alt="LoginPage" width="100%" />
 
-**HomePage** — dashboard ze statystykami, top ofertą i rekomendacjami
-<img width="2547" height="1228" alt="Image" src="https://github.com/user-attachments/assets/059672df-45ea-47c8-891e-698850234a61" />
+**OnboardingPage — krok 1** — stanowisko i poziom doświadczenia
+<img src="docs/screenshots/03-onboarding.png" alt="OnboardingPage — krok 1" width="100%" />
 
-**SearchPage — tryb klasyczny (`mode=classic`)** — lista ofert z `MatchMeter` i filtrami
-<img width="2540" height="1230" alt="Image" src="https://github.com/user-attachments/assets/af4029f4-e0d2-4ff1-b6f1-edcdb4e8daba" />
+**OnboardingPage — krok 3** — format pracy i oczekiwane wynagrodzenie
+<img src="docs/screenshots/04-onboarding-format.png" alt="OnboardingPage — krok 3" width="100%" />
 
-**SearchPage — tryb AI (`mode=ai`)** — dopasowanie oparte na LLM z uzasadnieniem (`reasoning`)
-<img width="2547" height="1227" alt="Image" src="https://github.com/user-attachments/assets/c32ea4a8-880b-4ec2-a5dd-3c04598db024" />
+**HomePage** — dashboard: statystyki, lista zadań, najlepsze nowe oferty, profil
+<img src="docs/screenshots/05-home.png" alt="HomePage" width="100%" />
 
-**Otwarta oferta (JobCard)** — pełny opis, tagi technologii, przycisk zapisu
-<img width="2545" height="1227" alt="Image" src="https://github.com/user-attachments/assets/e12d395c-9b05-4527-9452-bffc6e327b7d" />
+**SearchPage** — wyszukiwanie (AI / słowa kluczowe), filtry, `MatchMeter`
+<img src="docs/screenshots/06-search.png" alt="SearchPage" width="100%" />
 
-**SavedPage** — zapisane oferty pracy
-<img width="2543" height="1230" alt="Image" src="https://github.com/user-attachments/assets/0c2acbba-02e9-4f2b-b6c5-f0d4d15dd564" />
+**Otwarta oferta** — dopasowanie z uzasadnieniem, wynagrodzenie, umiejętności, status aplikacji
+<img src="docs/screenshots/08-job.png" alt="Otwarta oferta" width="100%" />
 
-**ProfilePage** — podgląd profilu i wgrane CV
-<img width="2557" height="1230" alt="Image" src="https://github.com/user-attachments/assets/95e79021-6ceb-4a27-958c-135eb21d0fae" />
+**Rekomendacje** — pełnoekranowy przegląd ofert jedna po drugiej ze skrótami klawiszowymi
+<img src="docs/screenshots/13-recommendations.png" alt="Rekomendacje" width="100%" />
 
-**SettingsPage** — motyw jasny / ciemny
-<img width="2557" height="1227" alt="Image" src="https://github.com/user-attachments/assets/6f080c65-12af-4ba3-902a-9d2fa708c1d8" />
-<img width="2557" height="1227" alt="Image" src="https://github.com/user-attachments/assets/bfb664f1-b8f0-4af1-9c5d-879038464dd2" />
+**Aplikacje (SavedPage)** — zapisane oferty i statusy aplikacji
+<img src="docs/screenshots/09-saved.png" alt="Aplikacje (SavedPage)" width="100%" />
 
-**Główny przepływ aplikacji (demo)** — logowanie → onboarding → wyszukiwanie → wyniki → zapis oferty + przełączanie motywu
+**ProfilePage** — kompletność profilu i dane do dopasowania
+<img src="docs/screenshots/10-profile.png" alt="ProfilePage" width="100%" />
+
+**SettingsPage — jasny motyw** — zapisane wyszukiwania, powiadomienia, konto
+<img src="docs/screenshots/11-settings-light.png" alt="SettingsPage — jasny motyw" width="100%" />
+
+**SettingsPage — ciemny motyw**
+<img src="docs/screenshots/12-settings-dark.png" alt="SettingsPage — ciemny motyw" width="100%" />
 
 https://github.com/user-attachments/assets/6d276c6a-6bd5-4d2f-b229-92320141d58d
 
@@ -611,35 +617,41 @@ The tests (`test_auth.py`, `test_google_oauth.py`, and others) use data factorie
 
 ### Screenshots
 
-**LoginPage** — login via email/password and Google OAuth
-<img width="2558" height="1228" alt="Image" src="https://github.com/user-attachments/assets/3e7cb5ec-09da-4f2e-88a3-661e5a3d0fac" />
+**Landing page** — start page with the new logo and product pitch
+<img src="docs/screenshots/01-landing.png" alt="Landing page" width="100%" />
 
-**OnboardingPage** — profile form (role, skills, experience, format, salary)
-<img width="2558" height="1227" alt="Image" src="https://github.com/user-attachments/assets/0325636d-2b89-4f9e-9c78-56bcb15a51d7" />
+**LoginPage** — login / sign-up via email or Google OAuth
+<img src="docs/screenshots/02-login.png" alt="LoginPage" width="100%" />
 
-**HomePage** — dashboard with statistics, top offer, and recommendations
-<img width="2547" height="1228" alt="Image" src="https://github.com/user-attachments/assets/059672df-45ea-47c8-891e-698850234a61" />
+**OnboardingPage — step 1** — role and experience level
+<img src="docs/screenshots/03-onboarding.png" alt="OnboardingPage — step 1" width="100%" />
 
-**SearchPage — classic mode (`mode=classic`)** — offer list with `MatchMeter` and filters
-<img width="2540" height="1230" alt="Image" src="https://github.com/user-attachments/assets/af4029f4-e0d2-4ff1-b6f1-edcdb4e8daba" />
+**OnboardingPage — step 3** — work format and expected salary
+<img src="docs/screenshots/04-onboarding-format.png" alt="OnboardingPage — step 3" width="100%" />
 
-**SearchPage — AI mode (`mode=ai`)** — LLM-based matching with a visible rationale (`reasoning`)
-<img width="2547" height="1227" alt="Image" src="https://github.com/user-attachments/assets/c32ea4a8-880b-4ec2-a5dd-3c04598db024" />
+**HomePage** — dashboard: stats, to-do list, best new offers, profile
+<img src="docs/screenshots/05-home.png" alt="HomePage" width="100%" />
 
-**Opened offer (JobCard)** — full description, technology tags, save button
-<img width="2545" height="1227" alt="Image" src="https://github.com/user-attachments/assets/e12d395c-9b05-4527-9452-bffc6e327b7d" />
+**SearchPage** — search (AI / keywords), filters, `MatchMeter`
+<img src="docs/screenshots/06-search.png" alt="SearchPage" width="100%" />
 
-**SavedPage** — saved job offers
-<img width="2543" height="1230" alt="Image" src="https://github.com/user-attachments/assets/0c2acbba-02e9-4f2b-b6c5-f0d4d15dd564" />
+**Opened offer** — match with rationale, salary, skills, application status
+<img src="docs/screenshots/08-job.png" alt="Opened offer" width="100%" />
 
-**ProfilePage** — profile overview and uploaded CV
-<img width="2557" height="1230" alt="Image" src="https://github.com/user-attachments/assets/95e79021-6ceb-4a27-958c-135eb21d0fae" />
+**Recommendations** — full-screen one-by-one offer review with keyboard shortcuts
+<img src="docs/screenshots/13-recommendations.png" alt="Recommendations" width="100%" />
 
-**SettingsPage** — light / dark theme
-<img width="2557" height="1227" alt="Image" src="https://github.com/user-attachments/assets/6f080c65-12af-4ba3-902a-9d2fa708c1d8" />
-<img width="2557" height="1227" alt="Image" src="https://github.com/user-attachments/assets/bfb664f1-b8f0-4af1-9c5d-879038464dd2" />
+**Applications (SavedPage)** — saved offers and application statuses
+<img src="docs/screenshots/09-saved.png" alt="Applications (SavedPage)" width="100%" />
 
-**Main application flow (demo)** — login → onboarding → search → results → save an offer + theme switching
+**ProfilePage** — profile completeness and matching data
+<img src="docs/screenshots/10-profile.png" alt="ProfilePage" width="100%" />
+
+**SettingsPage — light theme** — saved searches, notifications, account
+<img src="docs/screenshots/11-settings-light.png" alt="SettingsPage — light theme" width="100%" />
+
+**SettingsPage — dark theme**
+<img src="docs/screenshots/12-settings-dark.png" alt="SettingsPage — dark theme" width="100%" />
 
 https://github.com/user-attachments/assets/6d276c6a-6bd5-4d2f-b229-92320141d58d
 
