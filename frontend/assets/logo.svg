@@ -1,6 +1,6 @@
-<svg viewBox="96 96 376 340" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g stroke="black" stroke-width="56" stroke-linecap="round" stroke-linejoin="round">
-<path d="M126 130V384"/>
-<path d="M126 218C150 158 196 126 248 126C304 126 332 166 324 222C316 280 298 322 294 360C291 396 314 404 338 386C366 364 394 340 440 336"/>
+<svg viewBox="78 111 358 273" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g stroke="black" stroke-width="44" stroke-linecap="round">
+<path d="M102 360V285a50 50 0 0 1 100 0V360" stroke-opacity=".45"/>
+<path d="M272 360V205a70 70 0 0 1 140 0V360"/>
 </g>
 </svg>

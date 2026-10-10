@@ -51,6 +51,7 @@
 
 /* Shell */
 [data-theme="dark"] .shell { background: var(--bg); }
+[data-theme="dark"] img[src$="logo.svg"] { filter: invert(1); }
 [data-theme="dark"] .sidebar { background: rgb(24,24,23); border-right-color: rgba(255,255,255,0.07); }
 [data-theme="dark"] .sidebar .nav-item { color: rgba(255,255,255,0.48); }
 [data-theme="dark"] .sidebar .nav-item:hover { background: rgba(255,255,255,0.07); color: var(--text); }
