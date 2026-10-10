@@ -154,6 +154,8 @@ Testy (`test_auth.py`, `test_google_oauth.py` i inne) korzystają z fabryk danyc
 **SettingsPage — ciemny motyw**
 <img src="docs/screenshots/12-settings-dark.png" alt="SettingsPage — ciemny motyw" width="100%" />
 
+**Główny przepływ aplikacji (demo, poprzedni design)** — logowanie → onboarding → wyszukiwanie → wyniki → zapis oferty + przełączanie motywu
+
 https://github.com/user-attachments/assets/6d276c6a-6bd5-4d2f-b229-92320141d58d
 
 ---
@@ -652,6 +654,8 @@ The tests (`test_auth.py`, `test_google_oauth.py`, and others) use data factorie
 
 **SettingsPage — dark theme**
 <img src="docs/screenshots/12-settings-dark.png" alt="SettingsPage — dark theme" width="100%" />
+
+**Main application flow (demo, previous design)** — login → onboarding → search → results → save an offer + theme switching
 
 https://github.com/user-attachments/assets/6d276c6a-6bd5-4d2f-b229-92320141d58d
 
