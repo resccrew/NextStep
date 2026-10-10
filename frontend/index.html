@@ -1,27 +1,391 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<title>NextStep — AI job search</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
 </head>
 <body>
-<div id="root"></div>
+<x-dc>
+<helmet>
+<title>NextStep — Zrób swój next step</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&amp;family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:#F7FAF5;color:#0B1F12;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#0B1F12;text-decoration:none}
+a:hover{color:#1F3A27}
+::selection{background:#0B1F12;color:#96FF99}
+@keyframes ns-blink{0%,100%{opacity:1}50%{opacity:.2}}
+</style>
+</helmet>
 
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<div style="min-height:100vh;overflow-x:hidden">
 
-<script src="data.js"></script>
-<script type="text/babel" src="components.jsx"></script>
-<script type="text/babel" src="pages-auth.jsx"></script>
-<script type="text/babel" src="pages-app.jsx"></script>
-<script type="text/babel" src="app.jsx"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- HERO -->
+  <section id="top" data-screen-label="Hero" style="position:relative;background:#96FF99;overflow:hidden">
+    <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(11,31,18,0.07) 1px,transparent 1px),linear-gradient(90deg,rgba(11,31,18,0.07) 1px,transparent 1px);background-size:64px 64px;pointer-events:none"></div>
+    </sc-if>
+    <header style="position:relative;max-width:1360px;margin:0 auto;padding:24px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap">
+      <a href="#top" style="display:flex;align-items:center;gap:10px">
+        <img src="assets/logo.svg" alt="NextStep" style="height:28px;width:auto;filter:brightness(0)">
+        <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:21px;letter-spacing:-0.03em">NextStep</span>
+      </a>
+      <nav style="display:flex;gap:28px;flex-wrap:wrap;font-size:14px;font-weight:600">
+        <a href="#jak" style-hover="text-decoration:underline;text-underline-offset:4px">Jak to działa</a>
+        <a href="#ai" style-hover="text-decoration:underline;text-underline-offset:4px">Dopasowanie AI</a>
+        <a href="#zrodla" style-hover="text-decoration:underline;text-underline-offset:4px">Źródła</a>
+        <a href="#dla-kogo" style-hover="text-decoration:underline;text-underline-offset:4px">Dla kogo</a>
+        <a href="#faq" style-hover="text-decoration:underline;text-underline-offset:4px">FAQ</a>
+      </nav>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a href="app.html" style="padding:10px 16px;font-size:14px;font-weight:600;white-space:nowrap">Zaloguj się</a>
+        <a href="app.html" style="padding:10px 18px;border-radius:10px;background:#0B1F12;color:#96FF99;font-size:14px;font-weight:700;white-space:nowrap" style-hover="background:#000;color:#96FF99">Załóż konto →</a>
+      </div>
+    </header>
+
+    <div style="position:relative;max-width:1360px;margin:0 auto;padding:48px 40px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:40px;align-items:end">
+      <div style="display:flex;flex-direction:column;gap:24px;padding-bottom:72px">
+        <span style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px"><span style="width:8px;height:8px;background:#0B1F12;animation:ns-blink 1.6s infinite"></span>[ AI · PRACA W IT · POLSKA ]</span>
+        <h1 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(64px,9.4vw,136px);line-height:0.88;letter-spacing:-0.055em;text-wrap:balance">Zrób swój next&nbsp;step.</h1>
+        <p style="margin:0;font-size:19px;line-height:1.5;max-width:480px;color:#1F3A27;text-wrap:pretty">Trzy kroki profilu — i dostajesz oferty z polskich portali posortowane według tego, jak bardzo do Ciebie pasują. Z wynikiem i uzasadnieniem przy każdej.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <a href="app.html" style="padding:17px 26px;border-radius:12px;background:#0B1F12;color:#96FF99;font-size:16px;font-weight:700;white-space:nowrap" style-hover="background:#000;color:#96FF99">Zacznij za darmo →</a>
+          <a href="#jak" style="padding:17px 26px;border-radius:12px;border:1.5px solid #0B1F12;font-size:16px;font-weight:700;white-space:nowrap" style-hover="background:#0B1F12;color:#96FF99">Jak to działa</a>
+        </div>
+      </div>
+
+      <div style="height:560px;display:flex;align-items:flex-end;border-right:2px solid #0B1F12">
+        <div style="flex:1;min-width:0;height:{{ h1 }}px;transition:height .9s cubic-bezier(.2,.8,.2,1);overflow:hidden;background:#D6FFD8;border-top:2px solid #0B1F12;border-left:2px solid #0B1F12;padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:12px">
+          <span style="font-family:'Geist Mono',monospace;font-size:12px">01 / PROFIL</span>
+          <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;line-height:1.05;letter-spacing:-0.02em">Frontend Developer · Mid</span>
+        </div>
+        <div style="flex:1;min-width:0;height:{{ h2 }}px;transition:height .9s .1s cubic-bezier(.2,.8,.2,1);overflow:hidden;background:#fff;border-top:2px solid #0B1F12;border-left:2px solid #0B1F12;padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:12px">
+          <span style="font-family:'Geist Mono',monospace;font-size:12px">02 / UMIEJĘTNOŚCI</span>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span style="padding:4px 9px;border-radius:6px;background:#0B1F12;color:#96FF99;font-size:12px;font-weight:600">React</span>
+            <span style="padding:4px 9px;border-radius:6px;background:#0B1F12;color:#96FF99;font-size:12px;font-weight:600">TypeScript</span>
+            <span style="padding:4px 9px;border-radius:6px;background:#0B1F12;color:#96FF99;font-size:12px;font-weight:600">Next.js</span>
+            <span style="padding:4px 9px;border-radius:6px;border:1px solid #0B1F12;font-size:12px;font-weight:600">GraphQL</span>
+          </div>
+        </div>
+        <div style="flex:1;min-width:0;height:{{ h3 }}px;transition:height .9s .2s cubic-bezier(.2,.8,.2,1);overflow:hidden;background:#2DBE49;border-top:2px solid #0B1F12;border-left:2px solid #0B1F12;padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:12px">
+          <span style="font-family:'Geist Mono',monospace;font-size:12px">03 / PREFERENCJE</span>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;letter-spacing:-0.02em">Remote · Hybrid</span>
+            <div style="height:8px;background:rgba(11,31,18,0.2)"><div style="width:45%;height:100%;background:#0B1F12"></div></div>
+            <span style="font-family:'Geist Mono',monospace;font-size:12px">od $4 500</span>
+          </div>
+        </div>
+        <div style="flex:1.1;min-width:0;height:{{ h4 }}px;transition:height .9s .3s cubic-bezier(.2,.8,.2,1);overflow:hidden;background:#0B1F12;color:#fff;border-top:2px solid #0B1F12;border-left:2px solid #0B1F12;padding:20px;container-type:inline-size;display:flex;flex-direction:column;justify-content:space-between;gap:12px">
+          <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#96FF99">04 / OFERTY</span>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(36px,44cqw,88px);line-height:0.9;letter-spacing:-0.05em;color:#96FF99;white-space:nowrap">90%</span>
+            <span style="font-size:15px;font-weight:600;line-height:1.3">Privacy Data Analyst with German</span>
+            <span style="font-family:'Geist Mono',monospace;font-size:12px;color:rgba(255,255,255,0.7)">Kraków · 7–8 tys. zł</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TICKER / FACTS -->
+  <section data-screen-label="Fakty" style="background:#0B1F12;color:#fff">
+    <div style="max-width:1360px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+      <div style="padding:36px 40px;border-right:1px solid rgba(150,255,153,0.18);display:flex;flex-direction:column;gap:8px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:56px;line-height:1;letter-spacing:-0.04em;color:#96FF99">3</span><span style="font-family:'Geist Mono',monospace;font-size:13px;color:rgba(255,255,255,0.75)">KROKI DO PIERWSZYCH OFERT</span></div>
+      <div style="padding:36px 40px;border-right:1px solid rgba(150,255,153,0.18);display:flex;flex-direction:column;gap:8px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:56px;line-height:1;letter-spacing:-0.04em;color:#96FF99">0–100%</span><span style="font-family:'Geist Mono',monospace;font-size:13px;color:rgba(255,255,255,0.75)">WYNIK PRZY KAŻDEJ OFERCIE</span></div>
+      <div style="padding:36px 40px;border-right:1px solid rgba(150,255,153,0.18);display:flex;flex-direction:column;gap:8px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:56px;line-height:1;letter-spacing:-0.04em;color:#96FF99">4</span><span style="font-family:'Geist Mono',monospace;font-size:13px;color:rgba(255,255,255,0.75)">POZIOMY: JUNIOR → LEAD</span></div>
+      <div style="padding:36px 40px;display:flex;flex-direction:column;gap:8px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:56px;line-height:1;letter-spacing:-0.04em;color:#96FF99">1 klik</span><span style="font-family:'Geist Mono',monospace;font-size:13px;color:rgba(255,255,255,0.75)">DO ORYGINALNEGO OGŁOSZENIA</span></div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="jak" data-screen-label="Jak to działa" style="padding:128px 40px;background:#F7FAF5">
+    <div style="max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:56px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:32px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:16px;max-width:760px">
+          <span style="font-family:'Geist Mono',monospace;font-size:13px">[ 01 — JAK TO DZIAŁA ]</span>
+          <h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(44px,6vw,80px);line-height:0.92;letter-spacing:-0.045em;text-wrap:balance">Trzy kroki. Potem oferty przychodzą same.</h2>
+        </div>
+        <a href="app.html" style="padding:14px 22px;border-radius:12px;border:1.5px solid #0B1F12;font-size:15px;font-weight:700;white-space:nowrap" style-hover="background:#0B1F12;color:#96FF99">Załóż profil →</a>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));border:1.5px solid #0B1F12;border-radius:16px;overflow:hidden;background:#fff">
+        <div style="padding:32px;display:flex;flex-direction:column;gap:28px;border-right:1.5px solid #0B1F12">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'Geist Mono',monospace;font-size:13px">KROK 01</span><span style="width:40px;height:40px;background:#D6FFD8;border:1.5px solid #0B1F12"></span></div>
+          <div style="padding:18px;border-radius:12px;background:#F7FAF5;border:1px solid rgba(11,31,18,0.15);display:flex;flex-direction:column;gap:10px">
+            <span style="font-size:12px;font-weight:600;color:#3D5244">Jakiej pracy szukasz?</span>
+            <span style="padding:10px 12px;border-radius:8px;background:#fff;border:1.5px solid #0B1F12;font-size:14px;font-weight:500">Frontend Developer<span style="animation:ns-blink 1s infinite">|</span></span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span style="padding:4px 10px;border-radius:6px;border:1px solid rgba(11,31,18,0.3);font-size:12px">Junior</span>
+              <span style="padding:4px 10px;border-radius:6px;background:#0B1F12;color:#96FF99;font-size:12px;font-weight:600">Mid-level</span>
+              <span style="padding:4px 10px;border-radius:6px;border:1px solid rgba(11,31,18,0.3);font-size:12px">Senior</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px"><h3 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:28px;letter-spacing:-0.03em">Powiedz, kim jesteś</h3><p style="margin:0;font-size:15px;line-height:1.55;color:#3D5244">Stanowisko i poziom doświadczenia. AI rozumie podobne tytuły: Front-end Engineer, JS Developer, UI Engineer.</p></div>
+        </div>
+        <div style="padding:32px;display:flex;flex-direction:column;gap:28px;border-right:1.5px solid #0B1F12">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'Geist Mono',monospace;font-size:13px">KROK 02</span><span style="width:40px;height:40px;border-radius:999px;background:#2DBE49;border:1.5px solid #0B1F12"></span></div>
+          <div style="padding:18px;border-radius:12px;background:#F7FAF5;border:1px solid rgba(11,31,18,0.15);display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;min-height:130px">
+            <span style="padding:4px 10px;border-radius:6px;background:#0B1F12;color:#96FF99;font-size:12px;font-weight:600">✓ React</span>
+            <span style="padding:4px 10px;border-radius:6px;background:#0B1F12;color:#96FF99;font-size:12px;font-weight:600">✓ TypeScript</span>
+            <span style="padding:4px 10px;border-radius:6px;border:1px solid rgba(11,31,18,0.3);font-size:12px">Vue</span>
+            <span style="padding:4px 10px;border-radius:6px;background:#0B1F12;color:#96FF99;font-size:12px;font-weight:600">✓ Next.js</span>
+            <span style="padding:4px 10px;border-radius:6px;border:1px solid rgba(11,31,18,0.3);font-size:12px">Node.js</span>
+            <span style="padding:4px 10px;border-radius:6px;border:1px solid rgba(11,31,18,0.3);font-size:12px">GraphQL</span>
+            <span style="padding:4px 10px;border-radius:6px;border:1px solid rgba(11,31,18,0.3);font-size:12px">Figma</span>
+            <span style="padding:4px 10px;border-radius:6px;border:1px solid rgba(11,31,18,0.3);font-size:12px">SQL</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px"><h3 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:28px;letter-spacing:-0.03em">Wybierz umiejętności</h3><p style="margin:0;font-size:15px;line-height:1.55;color:#3D5244">Minimum trzy. AI uwzględni powiązane technologie z pięciu grup: Development, Design, Marketing, Analytics, Management.</p></div>
+        </div>
+        <div style="padding:32px;display:flex;flex-direction:column;gap:28px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'Geist Mono',monospace;font-size:13px">KROK 03</span><span style="width:40px;height:40px;background:#0B1F12;transform:rotate(45deg) scale(0.75)"></span></div>
+          <div style="padding:18px;border-radius:12px;background:#F7FAF5;border:1px solid rgba(11,31,18,0.15);display:flex;flex-direction:column;gap:12px;min-height:130px">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span style="padding:4px 10px;border-radius:6px;background:#0B1F12;color:#96FF99;font-size:12px;font-weight:600">Remote</span>
+              <span style="padding:4px 10px;border-radius:6px;background:#0B1F12;color:#96FF99;font-size:12px;font-weight:600">Hybrid</span>
+              <span style="padding:4px 10px;border-radius:6px;border:1px solid rgba(11,31,18,0.3);font-size:12px">Biuro</span>
+              <span style="padding:4px 10px;border-radius:6px;border:1px solid rgba(11,31,18,0.3);font-size:12px">Relokacja</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:12px"><span>WYNAGRODZENIE</span><strong>$4 500</strong></div>
+            <div style="height:8px;background:rgba(11,31,18,0.12)"><div style="width:42%;height:100%;background:#2DBE49"></div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px"><h3 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:28px;letter-spacing:-0.03em">Ustal, jak chcesz pracować</h3><p style="margin:0;font-size:15px;line-height:1.55;color:#3D5244">Format pracy, relokacja i wynagrodzenie. Nietrafione oferty odpadają, zanim je zobaczysz.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI MATCHING -->
+  <section id="ai" data-screen-label="Dopasowanie AI" style="padding:0 40px 128px;background:#F7FAF5">
+    <div style="max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr));gap:24px">
+      <div style="padding:48px;border-radius:16px;background:#0B1F12;color:#fff;display:flex;flex-direction:column;justify-content:space-between;gap:40px">
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#96FF99">[ 02 — DOPASOWANIE AI ]</span>
+          <h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(40px,5vw,68px);line-height:0.94;letter-spacing:-0.045em;text-wrap:balance">Każda oferta mówi, <span style="color:#96FF99">dlaczego</span> pasuje.</h2>
+          <p style="margin:0;font-size:17px;line-height:1.6;color:rgba(255,255,255,0.78);max-width:460px">Zamiast setek ogłoszeń — krótka lista posortowana według dopasowania. Przy każdej ofercie widzisz wynik i uzasadnienie: które umiejętności się pokrywają i co warto podkreślić.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;border-top:1px solid rgba(150,255,153,0.25)">
+          <div style="display:flex;gap:16px;padding:16px 0;border-bottom:1px solid rgba(150,255,153,0.25)"><span style="font-family:'Geist Mono',monospace;font-size:13px;color:#96FF99;width:28px">A</span><span style="font-size:15px">Wynik liczony z Twojego profilu, nie ze słów kluczowych</span></div>
+          <div style="display:flex;gap:16px;padding:16px 0;border-bottom:1px solid rgba(150,255,153,0.25)"><span style="font-family:'Geist Mono',monospace;font-size:13px;color:#96FF99;width:28px">B</span><span style="font-size:15px">Wyszukiwanie klasyczne lub AI — jednym przełącznikiem</span></div>
+          <div style="display:flex;gap:16px;padding:16px 0;border-bottom:1px solid rgba(150,255,153,0.25)"><span style="font-family:'Geist Mono',monospace;font-size:13px;color:#96FF99;width:28px">C</span><span style="font-size:15px">Zapisane oferty zawsze pod ręką</span></div>
+        </div>
+      </div>
+      <div style="position:relative;padding:48px;border-radius:16px;background:#96FF99;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:560px">
+        <div style="position:absolute;width:360px;height:360px;border-radius:999px;border:1.5px solid #0B1F12;right:-120px;top:-120px"></div>
+        <div style="position:absolute;width:200px;height:200px;background:#2DBE49;border:1.5px solid #0B1F12;left:-60px;bottom:-60px;transform:rotate(45deg)"></div>
+        <div style="position:relative;width:100%;max-width:440px;padding:26px;border-radius:14px;background:#fff;border:1.5px solid #0B1F12;box-shadow:10px 10px 0 #0B1F12;display:flex;flex-direction:column;gap:18px">
+          <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <span style="font-family:'Geist Mono',monospace;font-size:11px">NAJLEPSZE DOPASOWANIE</span>
+              <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:26px;line-height:1.05;letter-spacing:-0.03em">Privacy Data Analyst with German</span>
+              <span style="font-size:13px;color:#3D5244">Kraków · On-site · pełny etat</span>
+            </div>
+            <div style="position:relative;width:72px;height:72px;flex-shrink:0">
+              <svg width="72" height="72" style="transform:rotate(-90deg);display:block">
+                <circle cx="36" cy="36" r="32" stroke="#E3EEE5" stroke-width="7" fill="none"></circle>
+                <circle cx="36" cy="36" r="32" stroke="#2DBE49" stroke-width="7" fill="none" stroke-dasharray="201.06" stroke-dashoffset="{{ dash }}" style="transition:stroke-dashoffset 1.4s .4s cubic-bezier(.2,.7,.2,1)"></circle>
+              </svg>
+              <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:19px">90%</span>
+            </div>
+          </div>
+          <div style="padding:14px;border-radius:10px;background:#F7FAF5;border:1px solid rgba(11,31,18,0.15);display:flex;flex-direction:column;gap:4px">
+            <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#3D5244">DLACZEGO TO DOPASOWANIE</span>
+            <span style="font-size:14px;line-height:1.5">SQL i Python pokrywają się z wymaganiami. Niemiecki to kluczowy atut — warto go wyróżnić w CV.</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+            <div style="padding:10px;border-radius:8px;border:1px solid rgba(11,31,18,0.2);display:flex;flex-direction:column;gap:2px"><span style="font-family:'Geist Mono',monospace;font-size:10px;color:#3D5244">PENSJA</span><span style="font-size:13px;font-weight:700">7–8 tys. zł</span></div>
+            <div style="padding:10px;border-radius:8px;border:1px solid rgba(11,31,18,0.2);display:flex;flex-direction:column;gap:2px"><span style="font-family:'Geist Mono',monospace;font-size:10px;color:#3D5244">FORMAT</span><span style="font-size:13px;font-weight:700">On-site</span></div>
+            <div style="padding:10px;border-radius:8px;border:1px solid rgba(11,31,18,0.2);display:flex;flex-direction:column;gap:2px"><span style="font-family:'Geist Mono',monospace;font-size:10px;color:#3D5244">DODANO</span><span style="font-size:13px;font-weight:700">2 godz. temu</span></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+            <span style="font-size:13px;font-weight:600">☆ Zapisz</span>
+            <span style="padding:10px 16px;border-radius:10px;background:#0B1F12;color:#96FF99;font-size:13px;font-weight:700">Zobacz na praca.pl →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOURCES -->
+  <section id="zrodla" data-screen-label="Źródła" style="padding:0 40px 128px;background:#F7FAF5">
+    <div style="max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:40px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:32px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:16px;max-width:680px">
+          <span style="font-family:'Geist Mono',monospace;font-size:13px">[ 03 — ŹRÓDŁA OFERT ]</span>
+          <h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(40px,5vw,68px);line-height:0.94;letter-spacing:-0.045em;text-wrap:balance">Prawdziwe oferty z polskich portali.</h2>
+        </div>
+        <p style="margin:0;max-width:400px;font-size:16px;line-height:1.6;color:#3D5244">Ogłoszenia pobieramy na bieżąco, gdy wyszukujesz. Każda oferta prowadzi do oryginału — aplikujesz bezpośrednio u pracodawcy.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
+        <div style="padding:28px;border-radius:16px;background:#fff;border:1.5px solid #0B1F12;display:flex;flex-direction:column;gap:40px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="width:52px;height:52px;border-radius:12px;background:#96FF99;border:1.5px solid #0B1F12;display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px">P</span><span style="display:flex;align-items:center;gap:8px;font-family:'Geist Mono',monospace;font-size:12px"><span style="width:8px;height:8px;border-radius:999px;background:#2DBE49;animation:ns-blink 1.6s infinite"></span>AKTYWNE</span></div>
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:28px;letter-spacing:-0.03em">praca.pl</span><span style="font-size:14px;color:#3D5244">Oferty IT z całej Polski</span></div>
+        </div>
+        <div style="padding:28px;border-radius:16px;border:1.5px dashed rgba(11,31,18,0.35);display:flex;flex-direction:column;gap:40px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="width:52px;height:52px;border-radius:12px;border:1.5px dashed rgba(11,31,18,0.35)"></span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#3D5244">WKRÓTCE</span></div>
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:28px;letter-spacing:-0.03em;color:#3D5244">Kolejne źródło</span><span style="font-size:14px;color:#3D5244">W przygotowaniu</span></div>
+        </div>
+        <div style="padding:28px;border-radius:16px;border:1.5px dashed rgba(11,31,18,0.35);display:flex;flex-direction:column;gap:40px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="width:52px;height:52px;border-radius:12px;border:1.5px dashed rgba(11,31,18,0.35)"></span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#3D5244">WKRÓTCE</span></div>
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:28px;letter-spacing:-0.03em;color:#3D5244">Kolejne źródło</span><span style="font-size:14px;color:#3D5244">W przygotowaniu</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOR WHOM: staircase -->
+  <section id="dla-kogo" data-screen-label="Dla kogo" style="background:#fff;border-top:1.5px solid #0B1F12;padding:128px 40px 0;overflow:hidden">
+    <div style="max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:56px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:32px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:16px;max-width:680px">
+          <span style="font-family:'Geist Mono',monospace;font-size:13px">[ 04 — DLA KOGO ]</span>
+          <h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(40px,5vw,68px);line-height:0.94;letter-spacing:-0.045em;text-wrap:balance">Na każdym stopniu kariery w IT.</h2>
+        </div>
+        <p style="margin:0;max-width:400px;font-size:16px;line-height:1.6;color:#3D5244">Poziom doświadczenia wpływa na to, jakie oferty widzisz i jak liczony jest wynik dopasowania.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));align-items:end">
+        <div style="min-height:260px;padding:24px;background:#D6FFD8;border:2px solid #0B1F12;border-bottom:none;display:flex;flex-direction:column;gap:12px">
+          <span style="font-family:'Geist Mono',monospace;font-size:12px">0 – 1 ROK</span>
+          <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;line-height:1;letter-spacing:-0.04em">Junior</span>
+          <p style="margin:0;font-size:15px;line-height:1.55">Pierwsza praca lub staż. Oferty, w których liczy się potencjał, a nie lata stażu.</p>
+        </div>
+        <div style="min-height:330px;padding:24px;background:#96FF99;border:2px solid #0B1F12;border-bottom:none;margin-left:-2px;display:flex;flex-direction:column;gap:12px">
+          <span style="font-family:'Geist Mono',monospace;font-size:12px">1 – 3 LATA</span>
+          <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;line-height:1;letter-spacing:-0.04em">Mid-level</span>
+          <p style="margin:0;font-size:15px;line-height:1.55">Szukasz lepszego zespołu, stacku lub wynagrodzenia. Filtrujesz po formacie i widełkach.</p>
+        </div>
+        <div style="min-height:400px;padding:24px;background:#2DBE49;border:2px solid #0B1F12;border-bottom:none;margin-left:-2px;display:flex;flex-direction:column;gap:12px">
+          <span style="font-family:'Geist Mono',monospace;font-size:12px">3 – 6 LAT</span>
+          <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;line-height:1;letter-spacing:-0.04em">Senior</span>
+          <p style="margin:0;font-size:15px;line-height:1.55">Wiesz, czego chcesz. AI odsiewa oferty poniżej Twojego poziomu i oczekiwań.</p>
+        </div>
+        <div style="min-height:470px;padding:24px;background:#0B1F12;color:#fff;border:2px solid #0B1F12;border-bottom:none;margin-left:-2px;display:flex;flex-direction:column;gap:12px">
+          <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#96FF99">6+ LAT</span>
+          <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;line-height:1;letter-spacing:-0.04em;color:#96FF99">Lead / Expert</span>
+          <p style="margin:0;font-size:15px;line-height:1.55;color:rgba(255,255,255,0.82)">Role liderskie i eksperckie, gdzie liczy się zakres odpowiedzialności, nie tylko technologie.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section data-screen-label="Opinie" style="background:#0B1F12;color:#fff;padding:128px 40px">
+    <div style="max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:56px">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#96FF99">[ 05 — OPINIE ]</span>
+        <h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(40px,5vw,68px);line-height:0.94;letter-spacing:-0.045em">Co mówią użytkownicy.</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
+        <figure style="margin:0;padding:32px;border-radius:16px;background:#96FF99;color:#0B1F12;display:flex;flex-direction:column;justify-content:space-between;gap:40px">
+          <blockquote style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:26px;line-height:1.15;letter-spacing:-0.025em">„Pierwszy raz widzę, dlaczego oferta do mnie pasuje. Oszczędza mi to godziny przeglądania ogłoszeń.”</blockquote>
+          <figcaption style="display:flex;align-items:center;gap:12px"><span style="width:44px;height:44px;border-radius:999px;background:#0B1F12;color:#96FF99;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">MK</span><div style="display:flex;flex-direction:column"><span style="font-size:14px;font-weight:700">Marta K.</span><span style="font-family:'Geist Mono',monospace;font-size:12px">FRONTEND · KRAKÓW</span></div></figcaption>
+        </figure>
+        <figure style="margin:0;padding:32px;border-radius:16px;border:1.5px solid rgba(150,255,153,0.4);display:flex;flex-direction:column;justify-content:space-between;gap:40px">
+          <blockquote style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:26px;line-height:1.15;letter-spacing:-0.025em">„Ustawiłem profil w dwie minuty. Następnego dnia miałem listę ofert, które naprawdę miały sens.”</blockquote>
+          <figcaption style="display:flex;align-items:center;gap:12px"><span style="width:44px;height:44px;border-radius:999px;background:#96FF99;color:#0B1F12;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">PW</span><div style="display:flex;flex-direction:column"><span style="font-size:14px;font-weight:700">Piotr W.</span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:rgba(255,255,255,0.7)">BACKEND · WROCŁAW</span></div></figcaption>
+        </figure>
+        <figure style="margin:0;padding:32px;border-radius:16px;background:#fff;color:#0B1F12;display:flex;flex-direction:column;justify-content:space-between;gap:40px">
+          <blockquote style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:26px;line-height:1.15;letter-spacing:-0.025em">„Jako junior nie wiedziałam, gdzie zacząć. NextStep pokazał mi oferty na moim poziomie.”</blockquote>
+          <figcaption style="display:flex;align-items:center;gap:12px"><span style="width:44px;height:44px;border-radius:999px;background:#2DBE49;color:#0B1F12;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">AN</span><div style="display:flex;flex-direction:column"><span style="font-size:14px;font-weight:700">Anna N.</span><span style="font-family:'Geist Mono',monospace;font-size:12px">DATA ANALYST · WARSZAWA</span></div></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" data-screen-label="FAQ" style="padding:128px 40px;background:#F7FAF5">
+    <div style="max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:56px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <span style="font-family:'Geist Mono',monospace;font-size:13px">[ 06 — FAQ ]</span>
+        <h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(40px,5vw,68px);line-height:0.94;letter-spacing:-0.045em">Częste pytania.</h2>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="5">
+          <div style="border:1.5px solid #0B1F12;border-radius:12px;background:{{ f.bg }};overflow:hidden">
+            <button type="button" onClick="{{ f.toggle }}" style="width:100%;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px 22px;border:0;background:transparent;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;color:#0B1F12;text-align:left;cursor:pointer">
+              <span>{{ f.q }}</span>
+              <span style="flex-shrink:0;width:30px;height:30px;border-radius:8px;background:#0B1F12;color:#96FF99;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:16px">{{ f.sign }}</span>
+            </button>
+            <sc-if value="{{ f.open }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:0;padding:0 64px 22px 22px;font-size:15px;line-height:1.6;color:#1F3A27">{{ f.a }}</p>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section id="start" data-screen-label="CTA" style="position:relative;overflow:hidden;background:#96FF99;border-top:1.5px solid #0B1F12;padding:128px 40px 0">
+    <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(11,31,18,0.07) 1px,transparent 1px),linear-gradient(90deg,rgba(11,31,18,0.07) 1px,transparent 1px);background-size:64px 64px;pointer-events:none"></div>
+    </sc-if>
+    <div style="position:relative;max-width:1280px;margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center;gap:28px">
+      <span style="font-family:'Geist Mono',monospace;font-size:13px">[ TWÓJ RUCH ]</span>
+      <h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(56px,9vw,140px);line-height:0.88;letter-spacing:-0.055em;max-width:1100px;text-wrap:balance">Następny krok zaczyna się tutaj.</h2>
+      <p style="margin:0;max-width:480px;font-size:18px;line-height:1.5;color:#1F3A27">Załóż konto przez Google lub e-mail i zobacz pierwsze dopasowane oferty jeszcze dziś.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+        <a href="app.html" style="padding:18px 30px;border-radius:12px;background:#0B1F12;color:#96FF99;font-size:17px;font-weight:700;white-space:nowrap" style-hover="background:#000;color:#96FF99">Zacznij za darmo →</a>
+        <a href="app.html" style="padding:18px 30px;border-radius:12px;border:1.5px solid #0B1F12;font-size:17px;font-weight:700;white-space:nowrap" style-hover="background:#0B1F12;color:#96FF99">Mam już konto</a>
+      </div>
+    </div>
+    <div style="position:relative;max-width:1280px;margin:80px auto 0;display:flex;align-items:flex-end;height:180px">
+      <div style="position:relative;flex:1;height:45px;background:#D6FFD8;border:2px solid #0B1F12;border-bottom:none"><span style="position:absolute;left:16px;top:12px;font-family:'Geist Mono',monospace;font-size:12px;color:#0B1F12">01 / PROFIL</span></div>
+      <div style="position:relative;flex:1;height:90px;background:#fff;border:2px solid #0B1F12;border-bottom:none;margin-left:-2px"><span style="position:absolute;left:16px;top:12px;font-family:'Geist Mono',monospace;font-size:12px;color:#0B1F12">02 / UMIEJĘTNOŚCI</span></div>
+      <div style="position:relative;flex:1;height:135px;background:#2DBE49;border:2px solid #0B1F12;border-bottom:none;margin-left:-2px"><span style="position:absolute;left:16px;top:12px;font-family:'Geist Mono',monospace;font-size:12px;color:#0B1F12">03 / PREFERENCJE</span></div>
+      <div style="position:relative;flex:1;height:180px;background:#0B1F12;border:2px solid #0B1F12;border-bottom:none;margin-left:-2px"><span style="position:absolute;left:16px;top:12px;font-family:'Geist Mono',monospace;font-size:12px;color:#96FF99">04 / TWOJE OFERTY →</span></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="background:#0B1F12;color:#fff;padding:48px 40px">
+    <div style="max-width:1280px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:10px">
+        <img src="assets/logo.svg" alt="" style="height:24px;width:auto;filter:brightness(0) invert(1)">
+        <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:19px;letter-spacing:-0.03em">NextStep</span>
+      </div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;font-family:'Geist Mono',monospace;font-size:12px">
+        <a href="#" style="color:rgba(255,255,255,0.75)" style-hover="color:#96FF99">POLITYKA PRYWATNOŚCI</a>
+        <a href="#" style="color:rgba(255,255,255,0.75)" style-hover="color:#96FF99">REGULAMIN</a>
+        <a href="#" style="color:rgba(255,255,255,0.75)" style-hover="color:#96FF99">KONTAKT</a>
+      </div>
+      <span style="font-family:'Geist Mono',monospace;font-size:12px;color:rgba(255,255,255,0.6)">© 2026 NEXTSTEP</span>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;animate&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showGrid&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { shown: false, open: 0 };
+  componentDidMount() { this.t = setTimeout(() => this.setState({ shown: true }), 200); }
+  componentWillUnmount() { clearTimeout(this.t); }
+  renderVals() {
+    const animate = this.props.animate ?? true;
+    const s = this.state.shown || !animate;
+    const C = 201.06;
+    const FAQ = [
+      ['Czy NextStep jest darmowy?', 'Tak. Założenie konta, profil i przeglądanie dopasowanych ofert są bezpłatne.'],
+      ['Skąd pochodzą oferty?', 'Obecnie z praca.pl. Ogłoszenia są pobierane na bieżąco, a każda oferta zawiera link do oryginału, gdzie aplikujesz bezpośrednio.'],
+      ['Jak liczony jest procent dopasowania?', 'AI porównuje stanowisko, umiejętności, poziom doświadczenia i preferencje z Twojego profilu z treścią ogłoszenia i pokazuje uzasadnienie wyniku.'],
+      ['Czy mogę zmienić profil później?', 'Tak, w zakładce Profil w dowolnym momencie. Lista ofert aktualizuje się po zapisaniu zmian.'],
+      ['Jak się zalogować?', 'Przez konto Google albo e-mail i hasło.']
+    ];
+    return {
+      showGrid: this.props.showGrid ?? true,
+      h1: s ? 170 : 0, h2: s ? 300 : 0, h3: s ? 430 : 0, h4: s ? 560 : 0,
+      dash: s ? C * 0.1 : C,
+      faqs: FAQ.map(([q, a], i) => {
+        const open = this.state.open === i;
+        return { q, a, open, sign: open ? '−' : '+', bg: open ? '#96FF99' : '#fff',
+          toggle: () => this.setState(st => ({ open: st.open === i ? -1 : i })) };
+      })
+    };
+  }
+}
+</script>
 </body>
 </html>

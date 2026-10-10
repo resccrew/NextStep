@@ -1,7 +1,7 @@
-/* global React, SKILL_GROUPS, JOBS, Icon, Logo, MatchMeter, Avatar, Chip, JobCard */
+/* global React, SKILL_GROUPS, JOBS, Icon, Logo, MatchMeter, Avatar, Chip, JobRow */
 const { useState: useStateP, useMemo: useMemoP, useEffect: useEffectP } = React;
 
-// ============ Login Page ============
+// ============ Login Page (DESIGN.md §6 — split screen, mint brand panel + staircase) ============
 function LoginPage({ onLogin }) {
   const [mode, setMode] = useStateP('signin');
   const [email, setEmail] = useStateP('');
@@ -19,11 +19,11 @@ function LoginPage({ onLogin }) {
       client_id: GOOGLE_CLIENT_ID,
       callback: handleGoogleResponse
     });
-    
+
     const isDark = localStorage.getItem('theme') === 'dark';
     window.google.accounts.id.renderButton(
       document.getElementById("google-btn-div"),
-      { theme: isDark ? "filled_black" : "outline", size: "large", width: 400, shape: "rectangular" }
+      { theme: isDark ? "filled_black" : "outline", size: "large", width: 360, shape: "rectangular" }
     );
   }, []);
 
@@ -41,7 +41,7 @@ function LoginPage({ onLogin }) {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Google authorization error');
+        throw new Error(data.error || 'Błąd autoryzacji Google');
       }
 
       localStorage.setItem('access_token', data.access);
@@ -82,7 +82,7 @@ function LoginPage({ onLogin }) {
       const data = await response.json();
 
       if (!response.ok) {
-        const errorMsg = data.detail || (data.email && data.email[0]) || 'Authorization error';
+        const errorMsg = data.detail || (data.email && data.email[0]) || 'Błąd autoryzacji';
         throw new Error(errorMsg);
       }
 
@@ -96,7 +96,7 @@ function LoginPage({ onLogin }) {
       if (err instanceof TypeError && err.message.includes('fetch')) {
         setFlying(true);
         setTimeout(() => {
-          onLogin({ name: name || (email.split('@')[0] || 'User'), email: email || 'user@example.com' });
+          onLogin({ name: name || (email.split('@')[0] || 'Użytkownik'), email: email || 'user@example.com' });
         }, 700);
         return;
       }
@@ -110,88 +110,78 @@ function LoginPage({ onLogin }) {
   };
 
   return (
-    <div className={`auth2 ${flying ? 'is-flying' : ''}`}>
-      <header className="auth2-top">
-        <div className="auth2-brand">
-          <img src="assets/logo.svg" alt="" height={26} style={{ height: 26, width: 'auto', display: 'block' }} />
-          <span>NextStep</span>
+    <div className="auth-split" style={{ opacity: flying ? 0.5 : 1, transition: 'opacity .3s' }}>
+      <div className="auth-brand-panel">
+        <Logo size={26} />
+        <div className="auth-brand-headline">
+          <h1>Znajdź swój next&nbsp;step.</h1>
+          <p>Oferty IT z polskich portali, posortowane według tego, jak bardzo do Ciebie pasują.</p>
         </div>
-        <a href="#" className="auth2-help">Need help?</a>
-      </header>
+        <div className="auth-staircase">
+          <span style={{ height: 45, background: '#D6FFD8' }}></span>
+          <span style={{ height: 90, background: '#fff' }}></span>
+          <span style={{ height: 135, background: '#2DBE49' }}></span>
+          <span style={{ height: 180, background: '#0B1F12' }}></span>
+        </div>
+      </div>
 
-      <main className="auth2-main">
-        <h1 className="auth2-headline">
-          Find your<br/>next move.
-        </h1>
-        <p className="auth2-sub">AI-matched jobs, sorted by what fits you.</p>
+      <div className="auth-form-panel">
+        <div className="inner">
+          <h2 style={{ fontSize: 28, marginBottom: 6 }}>
+            {mode === 'signin' ? 'Zaloguj się' : 'Stwórz konto'}
+          </h2>
 
-        <div className="auth2-card">
-          <div 
-            id="google-btn-div" 
-            style={{ width: '100%', display: 'flex', justifyContent: 'center', minHeight: '40px' }}
-          ></div>
+          <div id="google-btn-div" style={{ width: '100%', display: 'flex', justifyContent: 'center', minHeight: 40 }}></div>
 
-          <div className="auth2-or" style={{ marginTop: 12 }}><span>OR</span></div>
+          <div className="auth-divider"><span className="line"></span>lub<span className="line"></span></div>
 
-          <form className="auth2-form" onSubmit={submit}>
+          <form className="col gap-10" onSubmit={submit}>
             {mode === 'signup' && (
-              <input
-                className="auth2-input"
-                placeholder="Your name"
-                value={name}
-                onChange={e=>setName(e.target.value)}
-                required
-              />
+              <input className="auth2-input" placeholder="Twoje imię" value={name}
+                onChange={e => setName(e.target.value)} required />
             )}
-            <input
-              className="auth2-input"
-              type="text"
-              placeholder="Enter your email"
-              value={email}
-              onChange={e=>setEmail(e.target.value)}
-              required
-            />
-            <input
-              className="auth2-input"
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={e=>setPassword(e.target.value)}
-              required
-            />
+            <input className="auth2-input" type="text" placeholder="Adres e-mail" value={email}
+              onChange={e => setEmail(e.target.value)} required />
+            <input className="auth2-input" type="password" placeholder="Hasło" value={password}
+              onChange={e => setPassword(e.target.value)} required />
 
-            {error && <div className="auth2-error" style={{ color: '#EA4335', fontSize: '14px', textAlign: 'center', backgroundColor: '#FCE8E6', padding: '8px', borderRadius: '8px', marginBottom: '12px' }}>{error}</div>}
+            {error && <div className="auth2-error">{error}</div>}
 
-            <button type="submit" className="auth2-cta">
-              {mode === 'signin' ? 'Continue with email' : 'Create account'}
+            <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }}>
+              {mode === 'signin' ? 'Kontynuuj z e-mailem' : 'Utwórz konto'}
             </button>
           </form>
 
-          <p className="auth2-fineprint">
-            By continuing, you acknowledge NextStep's <a href="#">Privacy Policy</a>.
+          <p className="muted" style={{ fontSize: 12, textAlign: 'center' }}>
+            Kontynuując, akceptujesz <a href="#">Politykę prywatności</a> NextStep.
           </p>
+
+          <button type="button" className="auth-switch-btn" onClick={switchMode}>
+            {mode === 'signin' ? (
+              <>Nowy w NextStep? <strong style={{ color: 'var(--ink)' }}>Stwórz konto</strong></>
+            ) : (
+              <>Masz już konto? <strong style={{ color: 'var(--ink)' }}>Zaloguj się</strong></>
+            )}
+          </button>
         </div>
-
-        <button type="button" className="auth2-switch" onClick={switchMode}>
-          {mode === 'signin' ? (
-            <>New to NextStep? <strong>Create an account</strong></>
-          ) : (
-            <>Already have an account? <strong>Sign in</strong></>
-          )}
-        </button>
-      </main>
-
-      <footer className="auth2-foot">© 2026 NextStep</footer>
+      </div>
     </div>
   );
 }
 
-// ============ Onboarding Page (Skills + Experience) ============
+// ============ Onboarding Page (3 steps: stanowisko+poziom → umiejętności → format+wynagrodzenie) ============
 const EXP_LEVELS = [
-  { id: 'junior',   label: 'Junior',        years: '0 – 1 year',   pct: 15 },
-  { id: 'middle',   label: 'Mid-level',     years: '1 – 3 years',  pct: 40 },
-  { id: 'senior',   label: 'Senior',        years: '3 – 6 years',  pct: 70 },
-  { id: 'lead',     label: 'Lead / Expert', years: '6+ years',     pct: 95 }
+  { id: 'junior',   label: 'Junior',        years: '0 – 1 rok',    pct: 15 },
+  { id: 'middle',   label: 'Mid-level',     years: '1 – 3 lata',   pct: 40 },
+  { id: 'senior',   label: 'Senior',        years: '3 – 6 lat',    pct: 70 },
+  { id: 'lead',     label: 'Lead / Expert', years: '6+ lat',       pct: 95 }
+];
+
+const FORMAT_OPTS = [
+  { id: 'remote', label: 'Zdalnie' },
+  { id: 'hybrid', label: 'Hybrydowo' },
+  { id: 'office', label: 'Biuro' },
+  { id: 'relocation', label: 'Otwarty na relokację' }
 ];
 
 function OnboardingPage({ profile, onSave, onSkip, embedded = false, initialStep = 1 }) {
@@ -226,7 +216,6 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false, initialStep
       onboarding_done: true
     };
 
-
     try {
       const token = localStorage.getItem('access_token');
       const response = await fetch('http://127.0.0.1:8000/api/users/onboarding/', {
@@ -239,207 +228,184 @@ function OnboardingPage({ profile, onSave, onSkip, embedded = false, initialStep
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save data on the server');
+        throw new Error('Nie udało się zapisać danych na serwerze');
       }
 
       onSave(dataToSave);
 
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to save data. Please check your server connection.');
+      alert('Nie udało się zapisać danych. Sprawdź połączenie z serwerem.');
     } finally {
       setIsSaving(false);
     }
   };
 
   const saveStepToServer = async (data) => {
-  try {
-    const token = localStorage.getItem('access_token');
-    if (!token) return;
-    await fetch('http://127.0.0.1:8000/api/users/onboarding/', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(data)
-    });
-  } catch (err) {
-    console.error('Failed to save step:', err);
-  }
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) return;
+      await fetch('http://127.0.0.1:8000/api/users/onboarding/', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+      });
+    } catch (err) {
+      console.error('Failed to save step:', err);
+    }
   };
 
-  return (
-    <div style={{maxWidth: 760, margin: '0 auto', padding: embedded ? '0' : '48px 24px'}}>
-      {!embedded && (
-        <div className="row" style={{justifyContent: 'space-between', marginBottom: 24}}>
-          <Logo size={28} />
-          <button className="btn btn-ghost btn-sm" onClick={onSkip}>Skip for now</button>
-        </div>
-      )}
+  const titles = {
+    1: { title: 'Zacznijmy od podstaw.', sub: 'Powiedz nam, czego szukasz. Im więcej szczegółów, tym lepsze dopasowania.' },
+    2: { title: 'Twoje umiejętności', sub: 'Wybierz co najmniej trzy. AI uwzględni też powiązane technologie.' },
+    3: { title: 'Jak lubisz pracować?', sub: 'To pomaga odfiltrować oferty, które się nie liczą.' }
+  };
 
-      <div className="steps" style={{marginBottom: 20}}>
-        <span className={`pill ${step>=1 ? 'is-on' : ''}`}>1 · About you</span>
-        <span className="ob-step-sep"></span>
-        <span className={`pill ${step>=2 ? 'is-on' : ''}`}>2 · Skills</span>
-        <span className="ob-step-sep"></span>
-        <span className={`pill ${step>=3 ? 'is-on' : ''}`}>3 · Preferences</span>
+  const body = (
+    <div className="col gap-20">
+      <div className="steps" style={{ justifyContent: embedded ? 'flex-start' : 'space-between' }}>
+        {!embedded && <Logo size={22} />}
+        {!embedded && (
+          <div className="row gap-10">
+            <span className="muted" style={{ fontSize: 13 }}>Krok {step} z 3</span>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={onSkip}>Pomiń na razie</button>
+          </div>
+        )}
+      </div>
+      <div className="ob-bars">
+        <span className={step >= 1 ? 'is-on' : ''}></span>
+        <span className={step >= 2 ? 'is-on' : ''}></span>
+        <span className={step >= 3 ? 'is-on' : ''}></span>
       </div>
 
-      {step === 1 && (
-        <div className="col gap-20">
-          <div className="col gap-6">
-            <div className="h1" style={{fontSize: 34}}>Let's start simple.</div>
-            <div className="muted" style={{fontSize: 15}}>
-              Tell us what you're looking for. The more specific, the smarter the matches.
+      <div className="col gap-6">
+        <h1 style={{ fontSize: 30 }}>{titles[step].title}</h1>
+        <p className="muted" style={{ fontSize: 15, margin: 0 }}>{titles[step].sub}</p>
+      </div>
+
+      <div className="ob-card">
+        {step === 1 && (
+          <>
+            <div className="field">
+              <label className="field-label">Stanowisko</label>
+              <input className="input" placeholder="np. Frontend Developer"
+                value={role} onChange={e=>setRole(e.target.value)} />
+              <div className="field-hint">Podobne tytuły (Front-end Engineer, UI Engineer) uwzględnimy automatycznie.</div>
             </div>
-          </div>
+            <div className="field">
+              <label className="field-label">Poziom</label>
+              <div className="level-grid">
+                {EXP_LEVELS.map(l => (
+                  <button key={l.id} type="button" className={`level-opt ${exp===l.id ? 'is-on' : ''}`} onClick={()=>setExp(l.id)}>
+                    <div className="lbl">{l.label}</div>
+                    <div className="yrs">{l.years}</div>
+                  </button>
+                ))}
+              </div>
+              <div className="completeness-track" style={{ marginTop: 10 }}>
+                <div className="completeness-fill" style={{ width: `${expPct}%` }}></div>
+              </div>
+            </div>
+          </>
+        )}
 
-          <div className="field">
-            <label className="field-label">What kind of job are you looking for?</label>
-            <input className="input" placeholder="e.g. Frontend Developer"
-              value={role} onChange={e=>setRole(e.target.value)} />
-            <div className="field-hint">AI understands similar titles: Front-end Engineer, JS Developer, UI Engineer.</div>
-          </div>
-
-          <div className="field">
-            <label className="field-label">Your level</label>
-            <div className="row gap-8" style={{flexWrap: 'wrap', marginTop: 4}}>
-              {EXP_LEVELS.map(l => (
-                <button key={l.id} className={`chip ${exp===l.id ? 'is-on' : ''}`} onClick={()=>setExp(l.id)}>
-                  <span style={{fontWeight: 600}}>{l.label}</span>
-                  <span style={{opacity: 0.7, fontWeight: 500}}>· {l.years}</span>
+        {step === 2 && (
+          <>
+            <div className="field">
+              <label className="field-label">Wybrane ({skills.length}) · minimum 3</label>
+            </div>
+            <div className="row gap-8" style={{ flexWrap: 'wrap' }}>
+              {SKILL_GROUPS.map(g => (
+                <button key={g.name} type="button"
+                  className={`chip ${activeGroup===g.name ? 'is-on' : ''}`}
+                  onClick={()=>setActiveGroup(g.name)}>
+                  {g.name}
                 </button>
               ))}
             </div>
-            <div className="track" style={{marginTop: 16}}>
-              <div className="fill" style={{width: `${expPct}%`}}></div>
-            </div>
-          </div>
-
-          <div className="row" style={{justifyContent: 'flex-end', marginTop: 12}}>
-            <button className="btn btn-primary" disabled={!canNext1} onClick={async () => {
-              await saveStepToServer({ role, experience: exp });
-              setStep(2);
-              }} style={{opacity: canNext1?1:0.5}}>
-                Next <Icon.Arrow />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {step === 2 && (
-        <div className="col gap-20">
-          <div className="col gap-6">
-            <div className="h1" style={{fontSize: 34}}>Your skills</div>
-            <div className="muted" style={{fontSize: 15}}>
-              Select at least three. AI will account for related technologies automatically.
-            </div>
-          </div>
-
-          <div className="row gap-8" style={{flexWrap: 'wrap'}}>
-            {SKILL_GROUPS.map(g => (
-              <button key={g.name}
-                className={`chip ${activeGroup===g.name ? 'is-on' : ''}`}
-                onClick={()=>setActiveGroup(g.name)}>
-                {g.name}
-              </button>
-            ))}
-          </div>
-
-          <div className="ob-skill-wrap">
-            <div className="skill-cloud">
+            <div className="row gap-6" style={{ flexWrap: 'wrap' }}>
               {SKILL_GROUPS.find(g=>g.name===activeGroup).skills.map(s => (
                 <Chip key={s} on={skills.includes(s)} onClick={()=>toggleSkill(s)}>{s}</Chip>
               ))}
             </div>
-          </div>
+            {skills.length > 0 && (
+              <div className="col gap-8">
+                <div className="eyebrow">Wybrane umiejętności</div>
+                <div className="row gap-6" style={{ flexWrap: 'wrap' }}>
+                  {skills.map(s => (
+                    <Chip key={s} on={true} removable onRemove={()=>toggleSkill(s)} onClick={()=>{}}>
+                      {s}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
 
-          {skills.length > 0 && (
-            <div className="col gap-8">
-              <div className="eyebrow">Selected ({skills.length})</div>
-              <div className="row gap-6" style={{flexWrap: 'wrap'}}>
-                {skills.map(s => (
-                  <Chip key={s} on={true} removable onRemove={()=>toggleSkill(s)} onClick={()=>{}}>
-                    {s}
-                  </Chip>
+        {step === 3 && (
+          <>
+            <div className="field">
+              <label className="field-label">Format pracy</label>
+              <div className="row gap-6" style={{ flexWrap: 'wrap' }}>
+                {FORMAT_OPTS.map(f => (
+                  <Chip key={f.id} on={formats.includes(f.id)} onClick={()=>toggleFormat(f.id)}>{f.label}</Chip>
                 ))}
               </div>
             </div>
-          )}
-
-          <div className="row" style={{justifyContent: 'space-between', marginTop: 12}}>
-            <button className="btn btn-ghost" onClick={()=>setStep(1)}>Back</button>
-            <button className="btn btn-primary" disabled={!canNext2} onClick={async () => {
-              await saveStepToServer({ role, experience: exp, skills });
-              setStep(3);
-            }} style={{opacity: canNext2?1:0.5}}>
-              Next <Icon.Arrow />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {step === 3 && (
-        <div className="col gap-20">
-          <div className="col gap-6">
-            <div className="h1" style={{fontSize: 34}}>How do you like to work?</div>
-            <div className="muted" style={{fontSize: 15}}>
-              This helps filter out irrelevant offers.
+            <div className="field">
+              <div className="row" style={{ justifyContent: 'space-between' }}>
+                <label className="field-label">Oczekiwane wynagrodzenie (min.)</label>
+                <span style={{ fontWeight: 700, fontSize: 16 }}>{salary * 10} zł</span>
+              </div>
+              <input type="range" min={60} max={500} step={10} value={salary}
+                onChange={e=>setSalary(+e.target.value)} />
             </div>
-          </div>
-
-          <div className="field">
-            <label className="field-label">Work format</label>
-            <div className="row gap-8" style={{flexWrap: 'wrap', marginTop: 4}}>
-              {[
-                {id: 'remote', label: 'Remote'},
-                {id: 'hybrid', label: 'Hybrid'},
-                {id: 'office', label: 'Office'},
-                {id: 'relocation', label: 'Open to relocation'}
-              ].map(f => (
-                <Chip key={f.id} on={formats.includes(f.id)} onClick={()=>toggleFormat(f.id)}>{f.label}</Chip>
-              ))}
-            </div>
-          </div>
-
-          <div className="field">
-            <label className="field-label">Expected salary</label>
-            <div className="row" style={{justifyContent: 'space-between'}}>
-              <div className="muted" style={{fontSize: 13}}>from $1,000</div>
-              <div style={{fontWeight: 700, fontSize: 16}}>${salary * 10}</div>
-              <div className="muted" style={{fontSize: 13}}>up to $10,000</div>
-            </div>
-            <input type="range" min={60} max={500} step={10} value={salary}
-              onChange={e=>setSalary(+e.target.value)}
-              style={{width: '100%', accentColor: 'var(--accent-strong)'}} />
-          </div>
-
-          <div className="ob-match-box">
-            <span style={{color: 'var(--text)', marginTop: 2}}><Icon.AI /></span>
-            <div className="col gap-4">
-              <div style={{fontWeight: 700, fontSize: 14, color: 'var(--text)'}}>Ready to match</div>
-              <div style={{fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5}}>
-                We'll find {Math.max(8, skills.length * 4)} jobs with over 70% relevance.
-                Updated daily.
+            <div className="ob-match-box">
+              <span style={{ color: 'var(--accentInk)', marginTop: 2 }}><Icon.AI /></span>
+              <div className="col gap-4">
+                <div style={{ fontWeight: 700, fontSize: 14 }}>Gotowi do dopasowania</div>
+                <div className="muted" style={{ fontSize: 13, lineHeight: 1.5 }}>
+                  Znajdziemy {Math.max(8, skills.length * 4)} ofert z dopasowaniem ponad 70%. Aktualizowane codziennie.
+                </div>
               </div>
             </div>
-          </div>
+          </>
+        )}
+      </div>
 
-          <div className="row" style={{justifyContent: 'space-between', marginTop: 12}}>
-            <button className="btn btn-ghost" onClick={()=>setStep(2)}>Back</button>
-            <button 
-              className="btn btn-mint btn-lg" 
-              onClick={handleSaveData} 
-              disabled={isSaving}
-            >
-              {isSaving ? 'Saving...' : 'Show jobs'} <Icon.Arrow />
-            </button>
-          </div>
-        </div>
-      )}
+      <div className="row" style={{ justifyContent: 'space-between' }}>
+        {step === 1 ? (
+          embedded ? <button className="btn btn-ghost" onClick={onSkip}>Pomiń</button> : <span></span>
+        ) : (
+          <button className="btn btn-ghost" onClick={() => setStep(step - 1)}>Wstecz</button>
+        )}
+        {step === 1 && (
+          <button className="btn btn-primary" disabled={!canNext1} onClick={async () => {
+            await saveStepToServer({ role, experience: exp });
+            setStep(2);
+          }}>Dalej <Icon.Arrow /></button>
+        )}
+        {step === 2 && (
+          <button className="btn btn-primary" disabled={!canNext2} onClick={async () => {
+            await saveStepToServer({ role, experience: exp, skills });
+            setStep(3);
+          }}>Dalej <Icon.Arrow /></button>
+        )}
+        {step === 3 && (
+          <button className="btn btn-mint btn-lg" onClick={handleSaveData} disabled={isSaving}>
+            {isSaving ? 'Zapisywanie...' : 'Pokaż oferty'} <Icon.Arrow />
+          </button>
+        )}
+      </div>
     </div>
   );
+
+  if (embedded) return body;
+  return <div className="ob-shell">{body}</div>;
 }
 
-Object.assign(window, { LoginPage, OnboardingPage, EXP_LEVELS });
+Object.assign(window, { LoginPage, OnboardingPage, EXP_LEVELS, FORMAT_OPTS });
