@@ -215,8 +215,9 @@ input[type="range"] { width: 100%; accent-color: var(--green); }
 .theme-btn { width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
 /* ============ Logo / avatar ============ */
-.logo-row { display: flex; align-items: center; gap: 10px; }
-.logo-row .logo-text { font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -0.02em; }
+.logo-row { display: flex; align-items: baseline; line-height: 1; }
+.logo-row .logo-mark { height: .73em; width: calc(.73em * .959); flex: none; margin-right: .04em; display: block; }
+.logo-row .logo-text { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 1em; letter-spacing: -0.035em; }
 [data-theme="dark"] img[src$="logo.svg"] { filter: invert(1); }
 .avatar {
   border-radius: 999px; background: var(--mintSoft); color: var(--accentInk);
