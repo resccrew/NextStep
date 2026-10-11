@@ -37,7 +37,7 @@ const STATUS_ORDER = ['saved', 'sent', 'interview', 'offer', 'rejected'];
 // ============ Logo ============
 function Logo({ size = 28, dark = false }) {
   return (
-    <div className="logo-row" aria-label="NextStep" style={{ fontSize: size / 0.73 }}>
+    <div className="logo-row" aria-label="NextStep" style={{ fontSize: size / 0.92 }}>
       <img src="assets/logo.svg" alt="" className="logo-mark" style={{ filter: dark ? 'brightness(0) invert(1)' : undefined }} />
       <span className="logo-text">extstep</span>
     </div>
